@@ -525,35 +525,22 @@ int main()
     }
 
     // Tell GLFW that we will use Vulkan
-    glfwWindowHint(
-        GLFW_CLIENT_API,
-        GLFW_NO_API
-    );
+    glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);
 
     // --------------------------------------------------
     // 2. Create Window
     // --------------------------------------------------
 
-    GLFWwindow* window =
-        glfwCreateWindow(
-            WIDTH,
-            HEIGHT,
-            "Vulkan Window",
-            nullptr,
-            nullptr
-        );
+    GLFWwindow* window = glfwCreateWindow(WIDTH,HEIGHT,"Vulkan Window",nullptr,nullptr);
 
     if (!window)
     {
         cerr << "Failed to create GLFW window\n";
-
         glfwTerminate();
-
         return EXIT_FAILURE;
     }
 
     cout << "GLFW window created!\n";
-
 
     // --------------------------------------------------
     // 4. Get GLFW Vulkan Extensions
@@ -561,18 +548,13 @@ int main()
 
     uint32_t glfwExtensionCount = 0;
 
-    const char** glfwExtensions =
-        glfwGetRequiredInstanceExtensions(
-            &glfwExtensionCount
-        );
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
     if (glfwExtensions == nullptr)
     {
         cerr << "GLFW could not find required Vulkan extensions!\n";
-
         glfwDestroyWindow(window);
         glfwTerminate();
-
         return EXIT_FAILURE;
     }
 
@@ -583,10 +565,8 @@ int main()
     if (instance == VK_NULL_HANDLE)
     {
         cerr << "Failed to create Vulkan instance!\n";
-
         glfwDestroyWindow(window);
         glfwTerminate();
-
         return EXIT_FAILURE;
     }
 
@@ -595,7 +575,6 @@ int main()
     // --------------------------------------------------
 
     VkSurfaceKHR surface = VK_NULL_HANDLE;
-
     if (glfwCreateWindowSurface(
             instance,
             window,
@@ -603,12 +582,10 @@ int main()
             &surface) != VK_SUCCESS)
     {
         cerr << "Failed to create window surface!\n";
-
         vkDestroyInstance(
             instance,
             nullptr
         );
-
         glfwDestroyWindow(window);
         glfwTerminate();
 
