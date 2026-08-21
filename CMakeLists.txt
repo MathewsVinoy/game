@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.20)
-project(MyGame LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(OpenGame
+    VERSION 0.1.0
+    LANGUAGES CXX
+)
+
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(engine)
-add_subdirectory(game)
-add_subdirectory(tests)
