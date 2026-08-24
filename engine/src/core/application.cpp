@@ -7,13 +7,14 @@ namespace engine
 {
     Application::Application()
     {
+        loadModels();
         createPipelineLayout();
         createPipeline();
         createCommandBuffers();
     }
 
     Application::~Application() { vkDestroyPipelineLayout(engineDevice.device(), pipelineLayout, nullptr); }
-    
+
     void Application::run()
     {
         while (!window.shouldClose())
@@ -22,6 +23,15 @@ namespace engine
             drawFrame();
         }
         vkDeviceWaitIdle(engineDevice.device());
+    }
+
+    void Application::loadModels()
+    {
+        std::vector<ModelBuffer::Vertex> vertices{
+            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+        modelBuffer = std::make_unique<ModelBuffer>(engineDevice, vertices);
     }
 
     void Application::createPipelineLayout()
@@ -40,8 +50,8 @@ namespace engine
 
     void Application::createPipeline()
     {
-        auto pipelineConfig = Pipeline::defaultPipelineConfigInfo(swapChain.width(), swapChain.height());
-        pipelineConfig.renderPass = swapChain.getRenderPass();
+        auto pipelineConfig = Pipeline::defaultPipelineConfigInfo(swapChain->width(), swapChain->height());
+        pipelineConfig.renderPass = swapChain->getRenderPass();
         pipelineConfig.pipelineLayout = pipelineLayout;
         pipeline = std::make_unique<Pipeline>(
             engineDevice,
@@ -53,7 +63,7 @@ namespace engine
     void Application::createCommandBuffers()
     {
 
-        commandBuffers.resize(swapChain.imageCount());
+        commandBuffers.resize(swapChain->imageCount());
 
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -77,22 +87,23 @@ namespace engine
 
             VkRenderPassBeginInfo renderPassInfo{};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassInfo.renderPass = swapChain.getRenderPass();
-            renderPassInfo.framebuffer = swapChain.getFrameBuffer(i);
+            renderPassInfo.renderPass = swapChain->getRenderPass();
+            renderPassInfo.framebuffer = swapChain->getFrameBuffer(i);
 
-            renderPassInfo.renderArea.offset = { 0, 0 };
-            renderPassInfo.renderArea.extent = swapChain.getSwapChainExtent();
+            renderPassInfo.renderArea.offset = {0, 0};
+            renderPassInfo.renderArea.extent = swapChain->getSwapChainExtent();
 
             std::array<VkClearValue, 2> clearValues{};
-            clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
-            clearValues[1].depthStencil = { 1.0f, 0 };
+            clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
+            clearValues[1].depthStencil = {1.0f, 0};
             renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
             renderPassInfo.pClearValues = clearValues.data();
 
             vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
             pipeline->bind(commandBuffers[i]);
-            vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+            modelBuffer->bind(commandBuffers[i]);
+            modelBuffer->draw(commandBuffers[i]);
 
             vkCmdEndRenderPass(commandBuffers[i]);
             if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
@@ -101,14 +112,18 @@ namespace engine
             }
         }
     }
-    void Application::drawFrame() {
+    void Application::drawFrame()
+    {
         uint32_t imageIndex;
-        auto result = swapChain.acquireNextImage(&imageIndex);;
-        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        auto result = swapChain->acquireNextImage(&imageIndex);
+        ;
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+        {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
-        result = swapChain.submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
-        if (result != VK_SUCCESS) {
+        result = swapChain->submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
+        if (result != VK_SUCCESS)
+        {
             throw std::runtime_error("failed to present swap chain image!");
         }
     }
