@@ -1,5 +1,6 @@
 #include "engine/core/application.hpp"
 #include "engine/core/render_system.hpp"
+#include "engine/render/camera.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -23,13 +24,20 @@ namespace engine
     void Application::run()
     {
         RenderSystem renderSystem{engineDevice, renderer.getSwapChainRenderPass()};
+        Camera camera{};
+        camera.setViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
+
         while (!window.shouldClose())
         {
             glfwPollEvents();
+
+             float aspect = renderer.getAspectRatio();
+            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+
             if (auto commandBuffer = renderer.beginFrame())
             {
                 renderer.beginSwapChainRenderPass(commandBuffer);
-                renderSystem.renderGameObjects(commandBuffer, gameObjects);
+                renderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
                 renderer.endSwapChainRenderPass(commandBuffer);
                 renderer.endFrame();
             }
@@ -38,21 +46,75 @@ namespace engine
         vkDeviceWaitIdle(engineDevice.device());
     }
 
+    std::unique_ptr<ModelBuffer> createCubeModel(EngineDevice &device, glm::vec3 offset)
+    {
+        std::vector<ModelBuffer::Vertex> vertices{
+
+            // left face (white)
+            {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+            {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+            {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+
+            // right face (yellow)
+            {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+            {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+            {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+
+            // top face (orange, remember y axis points down)
+            {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+            {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+            {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+
+            // bottom face (red)
+            {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+            {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+            {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+
+            // nose face (blue)
+            {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+            {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+            {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+
+            // tail face (green)
+            {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+            {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+            {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+
+        };
+        for (auto &v : vertices)
+        {
+            v.position += offset;
+        }
+        return std::make_unique<ModelBuffer>(device, vertices);
+    }
+
     void Application::loadGameObjects()
     {
-        std::vector<ModelBuffer::Vertex> vertices{{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-                                                  {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-                                                  {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
-        auto modelBuffer = std::make_shared<ModelBuffer>(engineDevice, vertices);
+        std::shared_ptr<ModelBuffer> model = createCubeModel(engineDevice, {0.0f, 0.0f, 0.0f});
+        auto cube = GameObject::createGameObject();
+        cube.modelBuffer = model;
+        cube.transform.translation = {.0f, .0f, 2.5f};
+        cube.transform.scale = {0.5f, 0.5f, 0.5f};
 
-        auto triangle = GameObject::createGameObject();
-        triangle.modelBuffer = modelBuffer;
-        triangle.color = {0.1f, 0.79f, 0.1f};
-        triangle.transform2d.translation.x = 0.2f;
-        triangle.transform2d.scale = {2.0f, 0.5f};
-        triangle.transform2d.rotation = 0.25f * glm::two_pi<float>();
-
-        gameObjects.push_back(std::move(triangle));
+        gameObjects.push_back(std::move(cube));
     }
 
 } // namespace engine
