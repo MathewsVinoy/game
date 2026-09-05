@@ -1,8 +1,9 @@
 #include "engine/core/application.hpp"
-#include "engine/core/render_system.hpp"
+#include "engine/system/render_system.hpp"
 #include "engine/render/camera.hpp"
 #include "engine/core/keyboard_controller.hpp"
 #include "engine/render/buffer.hpp"
+#include "engine/system/point_light.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -17,13 +18,6 @@
 
 namespace engine
 {
-    struct GlobalUbo
-    {
-        glm::mat4 projectionView{1.f};
-        glm::vec4 ambientLightColor{1.f, 1.f, 1.f, .02f}; // w is intensity
-        glm::vec3 lightPosition{-1.f};
-        alignas(16) glm::vec4 lightColor{1.f};
-    };
 
     Application::Application()
     {
@@ -53,7 +47,7 @@ namespace engine
 
         auto globalSetLayout =
             DescriptorSetLayout::Builder(engineDevice)
-                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .build();
 
         std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -70,6 +64,10 @@ namespace engine
             renderer.getSwapChainRenderPass(),
             globalSetLayout->getDescriptorSetLayout()};
         // RenderSystem renderSystem{engineDevice, renderer.getSwapChainRenderPass()};
+        PointLightSystem pointLightSystem{
+            engineDevice,
+            renderer.getSwapChainRenderPass(),
+            globalSetLayout->getDescriptorSetLayout()};
         Camera camera{};
 
         auto viewerObject = GameObject::createGameObject();
@@ -96,15 +94,26 @@ namespace engine
             if (auto commandBuffer = renderer.beginFrame())
             {
                 int frameIndex = renderer.getFrameIndex();
-                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+                FrameInfo frameInfo{
+                    frameIndex,
+                    frameTime,
+                    commandBuffer,
+                    camera,
+                    globalDescriptorSets[frameIndex],
+                    gameObjects};
+
                 GlobalUbo ubo{};
-                ubo.projectionView = camera.getProjection() * camera.getView();
+                ubo.projection = camera.getProjection();
+                ubo.view = camera.getView();
+                ubo.inverseView = camera.getInverseView();
+                pointLightSystem.update(frameInfo, ubo);
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
                 // render
                 renderer.beginSwapChainRenderPass(commandBuffer);
-                renderSystem.renderGameObjects(frameInfo, gameObjects);
+                renderSystem.renderGameObjects(frameInfo);
+                pointLightSystem.render(frameInfo);
                 renderer.endSwapChainRenderPass(commandBuffer);
                 renderer.endFrame();
             }
@@ -116,21 +125,26 @@ namespace engine
     void Application::loadGameObjects()
     {
         std::shared_ptr<ModelBuffer> model =
-            ModelBuffer::createModelFromFile(engineDevice, "assets/models/flat_vase.obj");
-        auto gameObject = GameObject::createGameObject();
-        gameObject.modelBuffer = model;
-        gameObject.transform.translation = {.5f, .5f, 0.f};
+            ModelBuffer::createModelFromFile(engineDevice, "assets/models/Spiderman_Amazing_Rigged.obj");
+        auto vase = GameObject::createGameObject();
+        vase.modelBuffer = model;
+        vase.transform.translation = {.5f, .5f, 0.f};
         // gameObject.transform.rotation = {3.f, 1.5f, 3.f};
-        gameObject.transform.scale = glm::vec3{3.f};
+        vase.transform.scale = glm::vec3{3.f};
 
-        gameObjects.push_back(std::move(gameObject));
+        gameObjects.emplace(vase.getId(), std::move(vase));
 
         model = ModelBuffer::createModelFromFile(engineDevice, "assets/models/quad.obj");
         auto floor = GameObject::createGameObject();
         floor.modelBuffer = model;
         floor.transform.translation = {.0f, .5f, 0.0f};
         floor.transform.scale = glm::vec3{3.f, 1.5f, 3.f};
-        gameObjects.push_back(std::move(floor));
+        gameObjects.emplace(floor.getId(), std::move(floor));
+
+        auto pointLight = GameObject::makePointLight(0.2f);
+        pointLight.color = {1.f, 1.f, 1.f};
+        pointLight.transform.translation = glm::vec4(-1.f, -1.f, -1.f, 1.f);
+        gameObjects.emplace(pointLight.getId(), std::move(pointLight));
     }
 
 } // namespace engine
