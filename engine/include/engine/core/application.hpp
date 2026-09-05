@@ -1,10 +1,10 @@
 #pragma once
 
 #include "engine/core/window.hpp"
-#include "engine/render/pipeline.hpp"
 #include "engine/render/devices.hpp"
-#include "engine/render/swap_chain.hpp"
 #include "engine/render/object.hpp"
+#include "engine/render/renderer.hpp"
+#include "engine/core/descriptors.hpp"
 
 #include <memory>
 #include <vector>
@@ -27,21 +27,12 @@ namespace engine
 
     private:
         void loadGameObjects();
-        void createPipelineLayout();
-        void createPipeline();
-        void createCommandBuffers();
-        void freeCommandBuffers();
-        void drawFrame();
-        void recreateSwapChain();
-        void recordCommandBuffer(int imageIndex);
-        void renderGameObjects(VkCommandBuffer commandBuffer);
 
         Window window{WIDTH, HEIGHT, "Engine"};
         EngineDevice engineDevice{window};
-        std::unique_ptr<SwapChain> swapChain;
-        std::unique_ptr<Pipeline> pipeline;
-        VkPipelineLayout pipelineLayout;
-        std::vector<VkCommandBuffer> commandBuffers;
-        std::vector<GameObject> gameObjects;
+        Renderer renderer{window, engineDevice};
+
+        std::unique_ptr<DescriptorPool> globalPool{};
+        GameObject::Map gameObjects;
     };
 }
