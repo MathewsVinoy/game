@@ -20,3 +20,4 @@ if(NOT SCRIPT_RESULT EQUAL 0)
 endif()
 
 add_subdirectory(engine)
+add_subdirectory(game)
