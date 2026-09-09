@@ -17,7 +17,7 @@ file(GLOB_RECURSE ENGINE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-add_executable(engine
+add_library(engine STATIC
     ${ENGINE_SOURCES}
 )
 
@@ -27,14 +27,12 @@ target_compile_features(engine
 )
 
 target_include_directories(engine
-    PRIVATE
-
+    PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 
+    PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyobjloader"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/FastNoise"
-
-
 )
 
 
