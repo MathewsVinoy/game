@@ -6,8 +6,10 @@
 #include "engine/render/renderer.hpp"
 #include "engine/core/descriptors.hpp"
 
+#include <functional>
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace engine
 {
@@ -23,7 +25,17 @@ namespace engine
         Application(const Application &) = delete;
         Application &operator=(const Application &) = delete;
 
+        using UpdateCallback = std::function<void(float)>;
+
+        void setUpdateCallback(UpdateCallback callback);
         void run();
+        GameObject::id_t renderGameObjects(std::string modelPath,
+                                           glm::vec3 translation = {0.f, 0.f, 0.f},
+                                           glm::vec3 scale = {1.f, 1.f, 1.f},
+                                           glm::vec3 rotation = {0.f, 0.f, 0.f});
+
+        Window &getWindow();
+        GameObject::Map &getGameObjects();
 
     private:
         void loadGameObjects();
@@ -34,5 +46,6 @@ namespace engine
 
         std::unique_ptr<DescriptorPool> globalPool{};
         GameObject::Map gameObjects;
+        UpdateCallback updateCallback{};
     };
 }
