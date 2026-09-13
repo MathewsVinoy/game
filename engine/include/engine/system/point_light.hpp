@@ -31,7 +31,7 @@ namespace engine
 
         EngineDevice &engineDevice;
 
-        std::unique_ptr<Pipeline> lvePipeline;
+        std::unique_ptr<Pipeline> pipeline;
         VkPipelineLayout pipelineLayout;
     };
 }
