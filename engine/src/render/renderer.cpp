@@ -1,5 +1,7 @@
 #include "engine/render/renderer.hpp"
 
+#include "engine/render/model_buffers.hpp"
+
 #include <array>
 #include <cassert>
 #include <stdexcept>
@@ -37,7 +39,7 @@ namespace engine
             {
                 throw std::runtime_error("Swap chain image or depth format has changed!");
             }
-                }
+        }
     }
 
     void Renderer::createCommandBuffers()
@@ -115,7 +117,7 @@ namespace engine
         isFrameStarted = false;
         currentFrameIndex = (currentFrameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
     }
-    
+
     void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
     {
         assert(isFrameStarted && "Can't call beginSwapChainRenderPass if frame is not in progress");

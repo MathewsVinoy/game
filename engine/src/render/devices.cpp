@@ -196,6 +196,7 @@ namespace engine
     else
     {
       createInfo.enabledLayerCount = 0;
+      createInfo.ppEnabledLayerNames = nullptr;
     }
 
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device_) != VK_SUCCESS)

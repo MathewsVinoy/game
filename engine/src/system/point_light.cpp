@@ -64,7 +64,7 @@ namespace engine
         pipelineConfig.bindingDescriptions.clear();
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        lvePipeline = std::make_unique<Pipeline>(
+        pipeline = std::make_unique<Pipeline>(
             engineDevice,
             "engine/shaders/point_light.vert.spv",
             "engine/shaders/point_light.frag.spv",
@@ -97,7 +97,7 @@ namespace engine
 
     void PointLightSystem::render(FrameInfo &frameInfo)
     {
-        lvePipeline->bind(frameInfo.commandBuffer);
+        pipeline->bind(frameInfo.commandBuffer);
 
         vkCmdBindDescriptorSets(
             frameInfo.commandBuffer,
