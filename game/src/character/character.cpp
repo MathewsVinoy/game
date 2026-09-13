@@ -13,7 +13,7 @@ namespace opengame
         object.setType("Character");
         object.setPath("assets/models/cube.obj");
         object.setScale({0.5f, 0.5f, 0.5f});
-        object.setPosition({0.f, -0.25f, 0.f});
+        object.setPosition({0.f, -1.0f, 0.f});
         return object;
     }
 
@@ -34,6 +34,8 @@ namespace opengame
         {
             return;
         }
+
+        resolveGroundCollision();
 
         if (isGrounded && controller.getKeyState(keyMappings.spacebar))
         {
@@ -65,7 +67,6 @@ namespace opengame
         glm::vec3 pos = object.getPosition();
         pos.y += verticalVelocity * dt;
         object.setPosition(pos);
-        resolveGroundCollision();
 
         auto &gameObjects = application->getGameObjects();
         auto it = gameObjects.find(renderObjectId);
@@ -84,19 +85,19 @@ namespace opengame
 
         // Ground AABB
         glm::vec3 groundMin = {-1e6f, GROUND_LEVEL, -1e6f};
-        glm::vec3 groundMax = {1e6f, GROUND_LEVEL + 0.1f, 1e6f};
+        glm::vec3 groundMax = {1e6f, GROUND_LEVEL - 0.1f, 1e6f};
 
         // Check collision
         bool isColliding =
             (playerMin.x <= groundMax.x) && (playerMax.x >= groundMin.x) &&
             (playerMin.y <= groundMax.y) && (playerMax.y >= groundMin.y) &&
             (playerMin.z <= groundMax.z) && (playerMax.z >= groundMin.z);
+
         if (isColliding)
         {
             glm::vec3 pos = object.getPosition();
             glm::vec3 playerScale = object.getScale();
-            pos.y = groundMax.y + playerScale.y / 2.0f;
-
+            pos.y = groundMax.y - playerScale.y / 2.0f;
             object.setPosition(pos);
             verticalVelocity = 0.0f;
             isGrounded = true;
