@@ -8,16 +8,19 @@ namespace opengame
 
     void World::initialize()
     {
-        // Initialize world-specific resources here
+        objectManager.initialize();
+        sceneManager.initialize();
     }
 
     void World::update(float deltaTime)
     {
-        // Update world logic here
+        objectManager.update(deltaTime);
+        sceneManager.update(deltaTime);
     }
 
     void World::shutdown()
     {
-        // Clean up world-specific resources here
+        objectManager.shutdown();
+        sceneManager.shutdown();
     }
 }

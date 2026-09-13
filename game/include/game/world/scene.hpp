@@ -1,23 +1,22 @@
 #pragma once
 
 #include "game/objects/object_manager.hpp"
-#include "game/world/scene_manager.hpp"
 
 namespace opengame
 {
-    class World
+    class Scene
     {
     public:
-        World();
-        ~World();
+        Scene();
+        ~Scene();
 
         void initialize();
         void update(float deltaTime);
         void shutdown();
-        SceneManager &getSceneManager();
+
+        ObjectManager &getObjectManager();
 
     private:
-        SceneManager sceneManager;
         ObjectManager objectManager;
     };
 }

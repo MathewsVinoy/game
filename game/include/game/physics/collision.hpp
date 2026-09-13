@@ -7,12 +7,16 @@ namespace opengame
     class Collision
     {
     public:
-        Collision() = default;
-        ~Collision() = default;
+        Collision(const glm::vec3 &playerMin, const glm::vec3 &playerMax, const glm::vec3 &groundMin, const glm::vec3 &groundMax);
+        ~Collision();
 
-        bool checkCollision(glm::vec3 position);
+        bool checkCollision();
 
     private:
         float groundLevel = 0.0f;
+        glm::vec3 playerMin;
+        glm::vec3 playerMax;
+        glm::vec3 groundMin;
+        glm::vec3 groundMax;
     };
 }
