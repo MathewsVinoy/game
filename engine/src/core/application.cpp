@@ -1,7 +1,9 @@
 #include "engine/core/application.hpp"
 #include "engine/system/render_system.hpp"
+#include "engine/system/ground.hpp"
 #include "engine/render/camera.hpp"
-#include "engine/core/keyboard_controller.hpp"
+#include "engine/input/keyboard_controller.hpp"
+#include "engine/input/mouse_controller.hpp"
 #include "engine/render/buffer.hpp"
 #include "engine/system/point_light.hpp"
 
@@ -10,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cassert>
@@ -27,9 +30,15 @@ namespace engine
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .build();
         loadGameObjects();
+        // renderGameObjects();
     }
 
     Application::~Application() {}
+
+    void Application::setUpdateCallback(UpdateCallback callback)
+    {
+        updateCallback = std::move(callback);
+    }
 
     void Application::run()
     {
@@ -68,11 +77,19 @@ namespace engine
             engineDevice,
             renderer.getSwapChainRenderPass(),
             globalSetLayout->getDescriptorSetLayout()};
+        Ground ground{
+            engineDevice,
+            renderer.getSwapChainRenderPass(),
+            globalSetLayout->getDescriptorSetLayout()};
         Camera camera{};
 
-        auto viewerObject = GameObject::createGameObject();
-        viewerObject.transform.translation.z = -2.5f;
-        KeyboardMovementController cameraController{};
+        glfwSetInputMode(window.getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        Mouse::setFirstMouse(true);
+        float yaw = 0.f;
+        float pitch = 0.35f;
+        constexpr float mouseSensitivity = 0.0025f;
+        constexpr float cameraDistance = 4.0f;
+        constexpr float cameraHeight = 1.5f;
 
         auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -85,8 +102,34 @@ namespace engine
                 std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
 
-            cameraController.moveInPlaneXZ(window.getGLFWwindow(), frameTime, viewerObject);
-            camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+            if (updateCallback)
+            {
+                updateCallback(frameTime);
+            }
+
+            Mouse::update(window.getGLFWwindow());
+            glm::vec2 mouseOffset = Mouse::getMouseOffset();
+            yaw += mouseOffset.x * mouseSensitivity;
+            pitch += mouseOffset.y * mouseSensitivity;
+
+            pitch = glm::clamp(pitch, -glm::radians(75.f), glm::radians(75.f));
+
+            glm::vec3 focusPoint{0.f};
+            for (auto &entry : gameObjects)
+            {
+                if (entry.second.modelBuffer != nullptr)
+                {
+                    focusPoint = entry.second.transform.translation;
+                    break;
+                }
+            }
+
+            glm::vec3 cameraPosition{
+                focusPoint.x + cameraDistance * glm::cos(pitch) * glm::sin(yaw),
+                focusPoint.y + cameraHeight + cameraDistance * glm::sin(pitch),
+                focusPoint.z + cameraDistance * glm::cos(pitch) * glm::cos(yaw)};
+
+            camera.setViewTarget(cameraPosition, focusPoint);
 
             float aspect = renderer.getAspectRatio();
             camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
@@ -113,6 +156,7 @@ namespace engine
                 // render
                 renderer.beginSwapChainRenderPass(commandBuffer);
                 renderSystem.renderGameObjects(frameInfo);
+                ground.render(frameInfo);
                 pointLightSystem.render(frameInfo);
                 renderer.endSwapChainRenderPass(commandBuffer);
                 renderer.endFrame();
@@ -124,27 +168,62 @@ namespace engine
 
     void Application::loadGameObjects()
     {
-        std::shared_ptr<ModelBuffer> model =
-            ModelBuffer::createModelFromFile(engineDevice, "assets/models/Spiderman_Amazing_Rigged.obj");
-        auto vase = GameObject::createGameObject();
-        vase.modelBuffer = model;
-        vase.transform.translation = {.5f, .5f, 0.f};
-        // gameObject.transform.rotation = {3.f, 1.5f, 3.f};
-        vase.transform.scale = glm::vec3{3.f};
 
-        gameObjects.emplace(vase.getId(), std::move(vase));
+        // std::shared_ptr<ModelBuffer> model =
+        // ModelBuffer::createModelFromFile(
+        // engineDevice,
+        // "assets/models/Spiderman_Amazing_Rigged.obj");
 
-        model = ModelBuffer::createModelFromFile(engineDevice, "assets/models/quad.obj");
-        auto floor = GameObject::createGameObject();
-        floor.modelBuffer = model;
-        floor.transform.translation = {.0f, .5f, 0.0f};
-        floor.transform.scale = glm::vec3{3.f, 1.5f, 3.f};
-        gameObjects.emplace(floor.getId(), std::move(floor));
+        // auto character = GameObject::createGameObject();
+        // character.modelBuffer = model;
 
+        // Position the character on the terrain.
+        //  character.transform.translation = {0.f, 0.f, 0.f};
+        //  character.transform.scale = glm::vec3{1.f};
+
+        // gameObjects.emplace(
+        // character.getId(),
+        // std::move(character));
+
+        // Point light.
         auto pointLight = GameObject::makePointLight(0.2f);
         pointLight.color = {1.f, 1.f, 1.f};
-        pointLight.transform.translation = glm::vec4(-1.f, -1.f, -1.f, 1.f);
-        gameObjects.emplace(pointLight.getId(), std::move(pointLight));
+        pointLight.transform.translation =
+            glm::vec4(-1.f, -1.f, -1.f, 1.f);
+
+        gameObjects.emplace(
+            pointLight.getId(),
+            std::move(pointLight));
+    }
+    GameObject::id_t Application::renderGameObjects(std::string modelPath,
+                                                    glm::vec3 translation,
+                                                    glm::vec3 scale,
+                                                    glm::vec3 rotation)
+    {
+        std::shared_ptr<ModelBuffer> model = ModelBuffer::createModelFromFile(
+            engineDevice,
+            modelPath);
+        auto character = GameObject::createGameObject();
+        character.modelBuffer = model;
+        // Position the character on the terrain.
+        character.transform.translation = translation;
+        character.transform.scale = scale;
+        character.transform.rotation = rotation;
+        gameObjects.emplace(
+            character.getId(),
+            std::move(character));
+
+        return character.getId();
+    }
+
+    Window &Application::getWindow()
+    {
+        return window;
+    }
+
+    GameObject::Map &Application::getGameObjects()
+    {
+        return gameObjects;
     }
 
 } // namespace engine
