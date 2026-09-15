@@ -85,7 +85,7 @@ namespace engine
 
         glfwSetInputMode(window.getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         Mouse::setFirstMouse(true);
-        float yaw = 0.f;
+
         float pitch = 0.35f;
         constexpr float mouseSensitivity = 0.0025f;
         constexpr float cameraDistance = 4.0f;

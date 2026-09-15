@@ -45,7 +45,7 @@ namespace opengame
 
         verticalVelocity += GRAVITY_STRENGTH * dt;
 
-        float yaw = object.getRotation().y;
+        float yaw = application->getYaw();
         const glm::vec3 forwardDir{-sin(yaw), 0.f, -cos(yaw)};
         const glm::vec3 rightDir{-forwardDir.z, 0.f, forwardDir.x};
 
