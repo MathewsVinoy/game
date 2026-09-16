@@ -13,7 +13,7 @@ namespace opengame
         object.setType("Character");
         object.setPath("assets/models/char.glb");
         object.setScale({0.5f, 0.5f, 0.5f});
-        object.setPosition({0.f, -1.0f, 0.f});
+        object.setPosition({0.f, -(object.getScale().y / 2.0f), 0.f});
         return object;
     }
 
