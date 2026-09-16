@@ -7,6 +7,12 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#include <tiny_gltf.h>
+
 #include <cassert>
 #include <cstring>
 #include <unordered_map>
@@ -40,7 +46,15 @@ namespace engine
         EngineDevice &device, const std::string &filepath)
     {
         Builder builder{};
-        builder.loadModel(filepath);
+        if (filepath.ends_with(".gltf") || filepath.ends_with(".glb"))
+        {
+            builder.loadModelGltf(filepath);
+        }
+        else
+        {
+            builder.loadModel(filepath);
+        }
+
         return std::make_unique<ModelBuffer>(device, builder);
     }
 
@@ -208,6 +222,175 @@ namespace engine
                     vertices.push_back(vertex);
                 }
                 indices.push_back(uniqueVertices[vertex]);
+            }
+        }
+    }
+
+    void ModelBuffer::Builder::loadModelGltf(const std::string &filepath)
+    {
+        tinygltf::Model model;
+        tinygltf::TinyGLTF loader;
+        std::string err, warn;
+
+              // Load GLB or glTF
+        bool ret;
+        if (filepath.size() >= 4 && filepath.substr(filepath.size() - 4) == ".glb")
+        {
+            ret = loader.LoadBinaryFromFile(&model, &err, &warn, filepath);
+        }
+        else if (filepath.size() >= 5 && filepath.substr(filepath.size() - 5) == ".gltf")
+        {
+            ret = loader.LoadASCIIFromFile(&model, &err, &warn, filepath);
+        }
+        else
+        {
+            throw std::runtime_error("Unsupported file format: " + filepath);
+        }
+
+        if (!ret)
+        {
+            throw std::runtime_error("Failed to load glTF/GLB file: " + filepath + "\nError: " + err);
+        }
+
+        vertices.clear();
+        indices.clear();
+        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+        // Default values for missing attributes
+        glm::vec3 defaultNormal = {0.0f, 1.0f, 0.0f};
+        glm::vec2 defaultUV = {0.0f, 0.0f};
+
+        for (const auto &mesh : model.meshes)
+        {
+            for (const auto &primitive : mesh.primitives)
+            {
+                // POSITION is required
+                auto positionIt = primitive.attributes.find("POSITION");
+                if (positionIt == primitive.attributes.end())
+                {
+                    continue;
+                }
+
+                const auto &positionAccessor = model.accessors[positionIt->second];
+                const auto &positionBufferView = model.bufferViews[positionAccessor.bufferView];
+                const auto &positionBuffer = model.buffers[positionBufferView.buffer];
+                const float *positions = reinterpret_cast<const float *>(
+                    positionBuffer.data.data() + positionBufferView.byteOffset + positionAccessor.byteOffset);
+
+                // Load normals if they exist
+                const float *normals = nullptr;
+                auto normalIt = primitive.attributes.find("NORMAL");
+                if (normalIt != primitive.attributes.end())
+                {
+                    const auto &normalAccessor = model.accessors[normalIt->second];
+                    const auto &normalBufferView = model.bufferViews[normalAccessor.bufferView];
+                    const auto &normalBuffer = model.buffers[normalBufferView.buffer];
+                    normals = reinterpret_cast<const float *>(
+                        normalBuffer.data.data() + normalBufferView.byteOffset + normalAccessor.byteOffset);
+                }
+
+                // Load UVs if they exist
+                const float *texcoords = nullptr;
+                auto texcoordIt = primitive.attributes.find("TEXCOORD_0");
+                if (texcoordIt != primitive.attributes.end())
+                {
+                    const auto &texcoordAccessor = model.accessors[texcoordIt->second];
+                    const auto &texcoordBufferView = model.bufferViews[texcoordAccessor.bufferView];
+                    const auto &texcoordBuffer = model.buffers[texcoordBufferView.buffer];
+                    texcoords = reinterpret_cast<const float *>(
+                        texcoordBuffer.data.data() + texcoordBufferView.byteOffset + texcoordAccessor.byteOffset);
+                }
+
+                // Load indices if they exist
+                if (primitive.indices >= 0)
+                {
+                    const auto &indexAccessor = model.accessors[primitive.indices];
+                    const auto &indexBufferView = model.bufferViews[indexAccessor.bufferView];
+                    const auto &indexBuffer = model.buffers[indexBufferView.buffer];
+                    const uint16_t *indicesData = reinterpret_cast<const uint16_t *>(
+                        indexBuffer.data.data() + indexBufferView.byteOffset + indexAccessor.byteOffset);
+
+                    for (size_t i = 0; i < indexAccessor.count; ++i)
+                    {
+                        Vertex vertex{};
+                        vertex.position = {
+                            positions[indicesData[i] * 3 + 0],
+                            positions[indicesData[i] * 3 + 1],
+                            positions[indicesData[i] * 3 + 2]};
+
+                        if (normals)
+                        {
+                            vertex.normal = {
+                                normals[indicesData[i] * 3 + 0],
+                                normals[indicesData[i] * 3 + 1],
+                                normals[indicesData[i] * 3 + 2]};
+                        }
+                        else
+                        {
+                            vertex.normal = defaultNormal;
+                        }
+
+                        if (texcoords)
+                        {
+                            vertex.uv = {
+                                texcoords[indicesData[i] * 2 + 0],
+                                texcoords[indicesData[i] * 2 + 1]};
+                        }
+                        else
+                        {
+                            vertex.uv = defaultUV;
+                        }
+
+                        if (uniqueVertices.find(vertex) == uniqueVertices.end())
+                        {
+                            uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+                            vertices.push_back(vertex);
+                        }
+                        indices.push_back(uniqueVertices[vertex]);
+                    }
+                }
+                else
+                {
+                    // No indices: treat as a non-indexed mesh
+                    for (size_t i = 0; i < positionAccessor.count; ++i)
+                    {
+                        Vertex vertex{};
+                        vertex.position = {
+                            positions[i * 3 + 0],
+                            positions[i * 3 + 1],
+                            positions[i * 3 + 2]};
+
+                        if (normals)
+                        {
+                            vertex.normal = {
+                                normals[i * 3 + 0],
+                                normals[i * 3 + 1],
+                                normals[i * 3 + 2]};
+                        }
+                        else
+                        {
+                            vertex.normal = defaultNormal;
+                        }
+
+                        if (texcoords)
+                        {
+                            vertex.uv = {
+                                texcoords[i * 2 + 0],
+                                texcoords[i * 2 + 1]};
+                        }
+                        else
+                        {
+                            vertex.uv = defaultUV;
+                        }
+
+                        if (uniqueVertices.find(vertex) == uniqueVertices.end())
+                        {
+                            uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+                            vertices.push_back(vertex);
+                        }
+                        indices.push_back(uniqueVertices[vertex]);
+                    }
+                }
             }
         }
     }
