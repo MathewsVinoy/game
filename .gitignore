@@ -11,6 +11,8 @@
 *.o
 *.obj
 *.mtl
+*.glb
+
 
 # Precompiled Headers
 *.gch
