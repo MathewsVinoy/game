@@ -11,7 +11,7 @@ namespace opengame
     Object Character::getObject()
     {
         object.setType("Character");
-        object.setPath("assets/models/figurine-cube-detailed.obj");
+        object.setPath("assets/models/char.glb");
         object.setScale({0.5f, 0.5f, 0.5f});
         object.setPosition({0.f, -1.0f, 0.f});
         return object;
