@@ -32,7 +32,9 @@ target_include_directories(engine
 
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyobjloader"
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinygltf"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/FastNoise"
+        
 )
 
 
