@@ -38,6 +38,7 @@ namespace engine
       std::vector<uint32_t> indices{};
 
       void loadModel(const std::string &filepath);
+      void loadModelGltf(const std::string &filepath);
     };
 
     ModelBuffer(EngineDevice &device, const ModelBuffer::Builder &builder);
