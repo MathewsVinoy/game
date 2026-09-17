@@ -13,7 +13,7 @@ namespace opengame
         object.setType("Character");
         object.setPath("assets/models/char.glb");
         object.setScale({0.5f, 0.5f, 0.5f});
-        object.setPosition({0.f, -(object.getScale().y / 2.0f), 0.f});
+        object.setPosition({0.f, 0.f, 0.f});
         return object;
     }
 
@@ -104,7 +104,7 @@ namespace opengame
         {
             glm::vec3 pos = object.getPosition();
             glm::vec3 playerScale = object.getScale();
-            pos.y = groundMax.y - playerScale.y / 2.0f;
+            pos.y = GROUND_LEVEL;
             object.setPosition(pos);
             verticalVelocity = 0.0f;
             isGrounded = true;
