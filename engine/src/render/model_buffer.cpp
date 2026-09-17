@@ -6,6 +6,7 @@
 #include <tiny_obj_loader.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -232,7 +233,7 @@ namespace engine
         tinygltf::TinyGLTF loader;
         std::string err, warn;
 
-              // Load GLB or glTF
+        // Load GLB or glTF
         bool ret;
         if (filepath.size() >= 4 && filepath.substr(filepath.size() - 4) == ".glb")
         {
@@ -259,6 +260,22 @@ namespace engine
         // Default values for missing attributes
         glm::vec3 defaultNormal = {0.0f, 1.0f, 0.0f};
         glm::vec2 defaultUV = {0.0f, 0.0f};
+
+        // glTF's spec convention is Y-up, +Z-forward, right-handed. This engine's
+        // world/camera convention (see Camera's default up = {0,-1,0}) is flipped
+        // relative to that. Rather than fixing this per-object at the gameplay
+        // transform level (which collides with facing/yaw rotation), bake a fixed
+        // 180-degree correction about X into every glTF mesh's vertex data once,
+        // here at load time. Every glTF asset gets this automatically, and
+        // object.rotation stays free to represent actual gameplay facing.
+        const glm::mat3 gltfCorrection = glm::mat3(
+            glm::rotate(glm::mat4{1.f}, glm::radians(180.f), glm::vec3{1.f, 0.f, 0.f}));
+
+        auto applyCorrection = [&](Vertex &vertex)
+        {
+            vertex.position = gltfCorrection * vertex.position;
+            vertex.normal = glm::normalize(gltfCorrection * vertex.normal);
+        };
 
         for (const auto &mesh : model.meshes)
         {
@@ -341,6 +358,8 @@ namespace engine
                             vertex.uv = defaultUV;
                         }
 
+                        applyCorrection(vertex);
+
                         if (uniqueVertices.find(vertex) == uniqueVertices.end())
                         {
                             uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
@@ -382,6 +401,8 @@ namespace engine
                         {
                             vertex.uv = defaultUV;
                         }
+
+                        applyCorrection(vertex);
 
                         if (uniqueVertices.find(vertex) == uniqueVertices.end())
                         {
