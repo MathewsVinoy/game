@@ -26,6 +26,11 @@ namespace engine
         int numLights;
     };
 
+    struct BoneUbo
+    {
+        glm::mat4 bones[128];
+    };
+
     struct FrameInfo
     {
         int frameIndex;
