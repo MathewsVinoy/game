@@ -13,6 +13,7 @@
 *.mtl
 *.glb
 *.gltf
+*.fbx
 
 
 # Precompiled Headers
