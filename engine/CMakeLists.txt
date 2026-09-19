@@ -5,12 +5,19 @@ project(engine
     LANGUAGES CXX
 )
 
-
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# ------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
+
+# ------------------------------------------------------------
+# Engine sources
+# ------------------------------------------------------------
 
 file(GLOB_RECURSE ENGINE_SOURCES
     CONFIGURE_DEPENDS
@@ -26,6 +33,10 @@ target_compile_features(engine
         cxx_std_20
 )
 
+# ------------------------------------------------------------
+# Include directories
+# ------------------------------------------------------------
+
 target_include_directories(engine
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -34,9 +45,12 @@ target_include_directories(engine
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyobjloader"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinygltf"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/FastNoise"
-        
+        "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
 )
 
+# ------------------------------------------------------------
+# Libraries
+# ------------------------------------------------------------
 
 target_link_libraries(engine
     PRIVATE
@@ -45,6 +59,9 @@ target_link_libraries(engine
         glm::glm
 )
 
+# ------------------------------------------------------------
+# Compiler warnings
+# ------------------------------------------------------------
 
 if(MSVC)
 
@@ -66,32 +83,86 @@ else()
 
 endif()
 
-find_program(GLSL_VALIDATOR
-    glslangValidator
+# ------------------------------------------------------------
+# stb_image
+# ------------------------------------------------------------
 
-    HINTS
-        ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
-        /usr/bin
-        /usr/local/bin
-        $ENV{VULKAN_SDK}/bin
-        $ENV{VULKAN_SDK}/Bin
+set(STB_IMAGE_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
 )
 
+set(STB_IMAGE_HEADER
+    "${STB_IMAGE_DIR}/stb_image.h"
+)
+
+file(MAKE_DIRECTORY
+    "${STB_IMAGE_DIR}"
+)
+
+if(NOT EXISTS "${STB_IMAGE_HEADER}")
+
+    message(STATUS "Downloading stb_image.h...")
+
+    file(DOWNLOAD
+        "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h"
+        "${STB_IMAGE_HEADER}"
+        SHOW_PROGRESS
+        STATUS STB_DOWNLOAD_STATUS
+    )
+
+    list(GET STB_DOWNLOAD_STATUS 0 STB_DOWNLOAD_ERROR)
+
+    if(NOT STB_DOWNLOAD_ERROR EQUAL 0)
+
+        file(REMOVE
+            "${STB_IMAGE_HEADER}"
+        )
+
+        message(FATAL_ERROR
+            "Failed to download stb_image.h: ${STB_DOWNLOAD_STATUS}"
+        )
+
+    endif()
+
+endif()
+
+message(STATUS
+    "Found stb_image.h: ${STB_IMAGE_HEADER}"
+)
+
+# ------------------------------------------------------------
+# GLSL compiler
+# ------------------------------------------------------------
+
+find_program(GLSL_VALIDATOR
+    NAMES glslangValidator
+
+    HINTS
+        "${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}"
+        "$ENV{VULKAN_SDK}/bin"
+        "$ENV{VULKAN_SDK}/Bin"
+
+    PATHS
+        /usr/bin
+        /usr/local/bin
+)
 
 if(NOT GLSL_VALIDATOR)
 
     message(FATAL_ERROR
-        "glslangValidator not found."
+        "glslangValidator not found. "
+        "Install the Vulkan SDK or add glslangValidator to PATH."
     )
 
 endif()
-
 
 message(STATUS
     "Found glslangValidator: ${GLSL_VALIDATOR}"
 )
 
-
+# ------------------------------------------------------------
+# Shaders
+# ------------------------------------------------------------
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
     CONFIGURE_DEPENDS
@@ -100,14 +171,12 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag"
 )
 
-
 set(SPIRV_BINARY_FILES)
-
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
 
     get_filename_component(FILE_NAME
-        ${GLSL}
+        "${GLSL}"
         NAME
     )
 
@@ -117,40 +186,43 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
 
     add_custom_command(
         OUTPUT
-            ${SPIRV}
+            "${SPIRV}"
 
         COMMAND
-            ${GLSL_VALIDATOR}
+            "${GLSL_VALIDATOR}"
             -V
-            ${GLSL}
+            "${GLSL}"
             -o
-            ${SPIRV}
+            "${SPIRV}"
 
         DEPENDS
-            ${GLSL}
+            "${GLSL}"
 
         COMMENT
             "Compiling shader ${FILE_NAME}"
+
+        VERBATIM
     )
 
     list(APPEND
         SPIRV_BINARY_FILES
-        ${SPIRV}
+        "${SPIRV}"
     )
 
 endforeach()
-
 
 add_custom_target(Shaders
     DEPENDS
         ${SPIRV_BINARY_FILES}
 )
 
-
 add_dependencies(engine
     Shaders
 )
 
+# ------------------------------------------------------------
+# Visual Studio debugger working directory
+# ------------------------------------------------------------
 
 set_property(
     TARGET engine

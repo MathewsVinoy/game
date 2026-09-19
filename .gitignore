@@ -12,6 +12,7 @@
 *.obj
 *.mtl
 *.glb
+*.gltf
 
 
 # Precompiled Headers
@@ -37,6 +38,7 @@
 *.exe
 *.out
 *.app
+*.bin
 
 # End of https://www.toptal.com/developers/gitignore/api/c++
 build/
@@ -44,3 +46,4 @@ checkmate/
 *.spv
 lib/
 .env.cmake
+third_party/
