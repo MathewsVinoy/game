@@ -2,6 +2,7 @@
 
 #include "engine/render/devices.hpp"
 #include "engine/render/buffer.hpp"
+#include "engine/animation/skeleton.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -21,6 +22,8 @@ namespace engine
       glm::vec3 color{};
       glm::vec3 normal{};
       glm::vec2 uv{};
+      int boneIds[4];
+      float weights[4];
 
       static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
       static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
@@ -36,9 +39,12 @@ namespace engine
     {
       std::vector<Vertex> vertices{};
       std::vector<uint32_t> indices{};
+      bool skinned = false;
 
       void loadModel(const std::string &filepath);
-      void loadModelGltf(const std::string &filepath);
+      void loadAnimatedModel(
+          const std::string &filepath,
+          const Skeleton &skeleton);
     };
 
     ModelBuffer(EngineDevice &device, const ModelBuffer::Builder &builder);
@@ -49,6 +55,13 @@ namespace engine
 
     static std::unique_ptr<ModelBuffer> createModelFromFile(
         EngineDevice &device, const std::string &filepath);
+    static std::unique_ptr<ModelBuffer> setbulder(EngineDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices);
+    static std::unique_ptr<ModelBuffer> setBuilder(EngineDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices)
+    {
+      return setbulder(device, std::move(vertices), std::move(indices));
+    }
+
+    bool isSkinned() const { return skinned; }
 
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);
@@ -61,6 +74,9 @@ namespace engine
 
     std::unique_ptr<EngineBuffer> vertexBuffer;
     uint32_t vertexCount;
+
+    bool isSkinnedBuffer = false;
+    bool skinned = false;
 
     bool hasIndexBuffer = false;
     std::unique_ptr<EngineBuffer> indexBuffer;
