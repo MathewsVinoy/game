@@ -4,114 +4,143 @@
 
 namespace opengame
 {
-    Character::Character() {}
+  Character::Character() {}
 
-    Character::~Character() {}
+  Character::~Character() {}
 
-    Object Character::getObject()
+  Object Character::getObject()
+  {
+    object.setType("Character");
+    object.setPath("assets/models/Standard Walk.fbx");
+    object.setScale({0.01f, 0.01f, 0.01f});
+    object.setPosition({0.f, 0.f, 0.f});
+    object.setRotation({glm::radians(180.f), 0.0f, 0.0f});
+    return object;
+  }
+
+  void Character::loadCharacterModel(engine::Application &app)
+  {
+    application = &app;
+    controller.setWindow(app.getWindow().getGLFWwindow());
+    object = getObject();
+    if (object.isActive())
     {
-        object.setType("Character");
-        object.setPath("assets/models/char.glb");
-        object.setScale({0.5f, 0.5f, 0.5f});
-        object.setPosition({0.f, 0.f, 0.f});
-        return object;
+      renderObjectId =
+          app.renderGameObjects(object.getPath(), object.getPosition(),
+                                object.getScale(), object.getRotation());
+    }
+  }
+
+  void Character::move(float dt)
+  {
+    if (application == nullptr)
+    {
+      return;
     }
 
-    void Character::loadCharacterModel(engine::Application &app)
+    if (isGrounded && controller.getKeyState(keyMappings.spacebar))
     {
-        application = &app;
-        controller.setWindow(app.getWindow().getGLFWwindow());
-        object = getObject();
-        if (object.isActive())
-        {
-            renderObjectId =
-                app.renderGameObjects(object.getPath(), object.getPosition(),
-                                      object.getScale(), object.getRotation());
-        }
+      verticalVelocity = JUMP_STRENGTH;
+      isGrounded = false;
     }
 
-    void Character::move(float dt)
+    verticalVelocity += GRAVITY_STRENGTH * dt;
+
+    float yaw = application->getYaw();
+    const glm::vec3 forwardDir{-sin(yaw), 0.f, -cos(yaw)};
+    const glm::vec3 rightDir{-forwardDir.z, 0.f, forwardDir.x};
+
+    glm::vec3 moveDir{0.f};
+    if (controller.getKeyState(keyMappings.characterMoveForward))
+      moveDir += forwardDir;
+    if (controller.getKeyState(keyMappings.characterMoveBackward))
+      moveDir -= forwardDir;
+    if (controller.getKeyState(keyMappings.characterMoveRight))
+      moveDir += rightDir;
+    if (controller.getKeyState(keyMappings.characterMoveLeft))
+      moveDir -= rightDir;
+
+    bool isMoving = false;
+
+    if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon())
     {
-        if (application == nullptr)
+      moveDir = glm::normalize(moveDir);
+
+      object.translate(moveSpeed * dt * moveDir);
+
+      isMoving = true;
+    }
+
+    auto &gameObjects = application->getGameObjects();
+
+    auto it = gameObjects.find(renderObjectId);
+
+    if (it != gameObjects.end() && it->second.animatedModel)
+    {
+      auto *animator = it->second.animatedModel->getAnimator();
+
+      if (isMoving)
+      {
+        if (!animator->isPlaying("Armature|mixamo.com|Layer0"))
         {
-            return;
+          animator->play("Armature|mixamo.com|Layer0");
         }
-
-        if (isGrounded && controller.getKeyState(keyMappings.spacebar))
+      }
+      else
+      {
+        if (!animator->isPlaying("idle"))
         {
-            verticalVelocity = JUMP_STRENGTH;
-            isGrounded = false;
+          animator->play("idle");
         }
+      }
+    }
 
-        verticalVelocity += GRAVITY_STRENGTH * dt;
+    glm::vec3 pos = object.getPosition();
+    pos.y += verticalVelocity * dt;
+    object.setPosition(pos);
 
-        float yaw = application->getYaw();
-        const glm::vec3 forwardDir{-sin(yaw), 0.f, -cos(yaw)};
-        const glm::vec3 rightDir{-forwardDir.z, 0.f, forwardDir.x};
+    resolveGroundCollision();
 
-        glm::vec3 moveDir{0.f};
-        if (controller.getKeyState(keyMappings.characterMoveForward))
-            moveDir += forwardDir;
-        if (controller.getKeyState(keyMappings.characterMoveBackward))
-            moveDir -= forwardDir;
-        if (controller.getKeyState(keyMappings.characterMoveRight))
-            moveDir += rightDir;
-        if (controller.getKeyState(keyMappings.characterMoveLeft))
-            moveDir -= rightDir;
-
-        if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon())
-        {
-            object.translate(moveSpeed * dt * glm::normalize(moveDir));
-        }
-
-        glm::vec3 pos = object.getPosition();
-        pos.y += verticalVelocity * dt;
-        object.setPosition(pos);
-
-        resolveGroundCollision();
-
-        auto &gameObjects = application->getGameObjects();
-        auto it = gameObjects.find(renderObjectId);
         if (it != gameObjects.end())
-        {
-            it->second.transform.translation = object.getPosition();
-            it->second.transform.rotation = object.getRotation();
-            it->second.transform.scale = object.getScale();
-        }
-    }
-
-    void Character::resolveGroundCollision()
     {
-
-        if (verticalVelocity < 0.0f)
-        {
-            isGrounded = false;
-            return;
-        }
-
-        glm::vec3 playerMin = object.getPosition() - (object.getScale() / 2.0f);
-        glm::vec3 playerMax = object.getPosition() + (object.getScale() / 2.0f);
-
-        glm::vec3 groundMin = {-1e6f, GROUND_LEVEL - 0.1f, -1e6f};
-        glm::vec3 groundMax = {1e6f, GROUND_LEVEL, 1e6f};
-
-        bool isColliding =
-            (playerMin.x <= groundMax.x) && (playerMax.x >= groundMin.x) &&
-            (playerMin.y <= groundMax.y) && (playerMax.y >= groundMin.y) &&
-            (playerMin.z <= groundMax.z) && (playerMax.z >= groundMin.z);
-
-        if (isColliding)
-        {
-            glm::vec3 pos = object.getPosition();
-            glm::vec3 playerScale = object.getScale();
-            pos.y = GROUND_LEVEL;
-            object.setPosition(pos);
-            verticalVelocity = 0.0f;
-            isGrounded = true;
-        }
-        else
-        {
-            isGrounded = false;
-        }
+      it->second.transform.translation = object.getPosition();
+      it->second.transform.rotation = object.getRotation();
+      it->second.transform.scale = object.getScale();
     }
+  }
+
+  void Character::resolveGroundCollision()
+  {
+
+    if (verticalVelocity < 0.0f)
+    {
+      isGrounded = false;
+      return;
+    }
+
+    glm::vec3 playerMin = object.getPosition() - (object.getScale() / 2.0f);
+    glm::vec3 playerMax = object.getPosition() + (object.getScale() / 2.0f);
+
+    glm::vec3 groundMin = {-1e6f, GROUND_LEVEL - 0.1f, -1e6f};
+    glm::vec3 groundMax = {1e6f, GROUND_LEVEL, 1e6f};
+
+    bool isColliding =
+        (playerMin.x <= groundMax.x) && (playerMax.x >= groundMin.x) &&
+        (playerMin.y <= groundMax.y) && (playerMax.y >= groundMin.y) &&
+        (playerMin.z <= groundMax.z) && (playerMax.z >= groundMin.z);
+
+    if (isColliding)
+    {
+      glm::vec3 pos = object.getPosition();
+      glm::vec3 playerScale = object.getScale();
+      pos.y = GROUND_LEVEL;
+      object.setPosition(pos);
+      verticalVelocity = 0.0f;
+      isGrounded = true;
+    }
+    else
+    {
+      isGrounded = false;
+    }
+  }
 } // namespace opengame
