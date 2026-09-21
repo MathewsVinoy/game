@@ -7,17 +7,10 @@ project(engine
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ------------------------------------------------------------
-# Dependencies
-# ------------------------------------------------------------
-
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
-
-# ------------------------------------------------------------
-# Engine sources
-# ------------------------------------------------------------
+find_package(assimp REQUIRED)
 
 file(GLOB_RECURSE ENGINE_SOURCES
     CONFIGURE_DEPENDS
@@ -33,35 +26,24 @@ target_compile_features(engine
         cxx_std_20
 )
 
-# ------------------------------------------------------------
-# Include directories
-# ------------------------------------------------------------
-
 target_include_directories(engine
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 
     PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/lib"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyobjloader"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/tinygltf"
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/FastNoise"
-        "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
 )
-
-# ------------------------------------------------------------
-# Libraries
-# ------------------------------------------------------------
 
 target_link_libraries(engine
     PRIVATE
         glfw
         Vulkan::Vulkan
         glm::glm
+        assimp::assimp 
 )
-
-# ------------------------------------------------------------
-# Compiler warnings
-# ------------------------------------------------------------
 
 if(MSVC)
 
@@ -83,12 +65,8 @@ else()
 
 endif()
 
-# ------------------------------------------------------------
-# stb_image
-# ------------------------------------------------------------
-
 set(STB_IMAGE_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib"
 )
 
 set(STB_IMAGE_HEADER
@@ -101,7 +79,9 @@ file(MAKE_DIRECTORY
 
 if(NOT EXISTS "${STB_IMAGE_HEADER}")
 
-    message(STATUS "Downloading stb_image.h...")
+    message(STATUS
+        "stb_image.h not found. Downloading..."
+    )
 
     file(DOWNLOAD
         "https://raw.githubusercontent.com/nothings/stb/master/stb_image.h"
@@ -124,21 +104,24 @@ if(NOT EXISTS "${STB_IMAGE_HEADER}")
 
     endif()
 
+    message(STATUS
+        "Downloaded stb_image.h to ${STB_IMAGE_HEADER}"
+    )
+
+else()
+
+    message(STATUS
+        "Found stb_image.h: ${STB_IMAGE_HEADER}"
+    )
+
 endif()
 
-message(STATUS
-    "Found stb_image.h: ${STB_IMAGE_HEADER}"
-)
-
-# ------------------------------------------------------------
-# GLSL compiler
-# ------------------------------------------------------------
 
 find_program(GLSL_VALIDATOR
     NAMES glslangValidator
 
     HINTS
-        "${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}"
+        ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
         "$ENV{VULKAN_SDK}/bin"
         "$ENV{VULKAN_SDK}/Bin"
 
@@ -151,7 +134,8 @@ if(NOT GLSL_VALIDATOR)
 
     message(FATAL_ERROR
         "glslangValidator not found. "
-        "Install the Vulkan SDK or add glslangValidator to PATH."
+        "Please install the Vulkan SDK or add "
+        "glslangValidator to your PATH."
     )
 
 endif()
@@ -159,10 +143,6 @@ endif()
 message(STATUS
     "Found glslangValidator: ${GLSL_VALIDATOR}"
 )
-
-# ------------------------------------------------------------
-# Shaders
-# ------------------------------------------------------------
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
     CONFIGURE_DEPENDS
@@ -211,6 +191,7 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
 
 endforeach()
 
+
 add_custom_target(Shaders
     DEPENDS
         ${SPIRV_BINARY_FILES}
@@ -220,9 +201,6 @@ add_dependencies(engine
     Shaders
 )
 
-# ------------------------------------------------------------
-# Visual Studio debugger working directory
-# ------------------------------------------------------------
 
 set_property(
     TARGET engine
