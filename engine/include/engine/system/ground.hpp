@@ -12,7 +12,11 @@ namespace engine
     class Ground
     {
     public:
-        Ground(EngineDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+        Ground(
+            EngineDevice &device,
+            VkRenderPass renderPass,
+            VkDescriptorSetLayout globalSetLayout);
+
         ~Ground();
 
         Ground(const Ground &) = delete;
@@ -34,8 +38,11 @@ namespace engine
             glm::vec3 normal{};
             glm::vec2 uv{};
 
-            static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
-            static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+            static std::vector<VkVertexInputBindingDescription>
+            getBindingDescriptions();
+
+            static std::vector<VkVertexInputAttributeDescription>
+            getAttributeDescriptions();
         };
 
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
@@ -47,11 +54,13 @@ namespace engine
 
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
+
         std::unique_ptr<EngineBuffer> vertexBuffer;
         std::unique_ptr<EngineBuffer> indexBuffer;
+
         uint32_t indexCount = 0;
 
         std::unique_ptr<Pipeline> pipeline;
-        VkPipelineLayout pipelineLayout;
+        VkPipelineLayout pipelineLayout{VK_NULL_HANDLE};
     };
 }
