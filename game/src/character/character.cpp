@@ -101,7 +101,7 @@ namespace opengame
 
     resolveGroundCollision();
 
-        if (it != gameObjects.end())
+    if (it != gameObjects.end())
     {
       it->second.transform.translation = object.getPosition();
       it->second.transform.rotation = object.getRotation();
