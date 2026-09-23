@@ -12,5 +12,6 @@ namespace engine
         {
             glfwPollEvents();
         }
+        vkDeviceWaitIdle(engineDevice.device());
     }
 }
