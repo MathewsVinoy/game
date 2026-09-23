@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/core/window.hpp"
+#include "engine/core/devices.hpp"
 
 namespace engine
 {
@@ -20,5 +21,6 @@ namespace engine
 
     private:
         Window window{WIDTH, HEIGHT, "Open Game"};
+        EngineDevice engineDevice{window};
     };
 }
