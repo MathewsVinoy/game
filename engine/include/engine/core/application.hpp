@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/core/window.hpp"
+
 namespace engine
 {
     class Application
@@ -14,6 +16,9 @@ namespace engine
         Application(const Application &) = delete;
         Application &operator=(const Application &) = delete;
 
+        void run();
+
     private:
-        };
+        Window window{WIDTH, HEIGHT, "Open Game"};
+    };
 }
