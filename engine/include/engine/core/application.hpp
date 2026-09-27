@@ -26,6 +26,8 @@ namespace engine
         void run();
 
     private:
+        void loadGameObjects();
+
         Window window{WIDTH, HEIGHT, "Open Game"};
         EngineDevice engineDevice{window};
         Renderer renderer{window, engineDevice};
