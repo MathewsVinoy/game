@@ -192,7 +192,6 @@ namespace engine
             0.01f,
             0.01f,
             0.01f};
-        character.transform.rotation = {glm::radians(180.f), 0.0f, 0.0f};
         gameObjects.emplace(
             character.getId(),
             std::move(character));

@@ -15,8 +15,6 @@ namespace engine
   {
     glm::mat4 modelMatrix{1.f};
     glm::mat4 normalMatrix{1.f};
-
-    glm::vec4 color{1.f};
     int uSkinned{0};
   };
 
@@ -82,21 +80,29 @@ namespace engine
     for (auto &kv : frameInfo.gameObjects)
     {
       auto &obj = kv.second;
+      if (obj.modelBuffer == nullptr && obj.animatedModel == nullptr)
+        continue;
 
       SimplePushConstantData push{};
       push.modelMatrix = obj.transform.mat4();
       push.normalMatrix = glm::mat4(
           glm::transpose(glm::inverse(glm::mat3(obj.transform.mat4()))));
-      push.color = glm::vec4(obj.color, 1.0f);
-      push.uSkinned = 0;
+      push.uSkinned = (obj.animatedModel != nullptr) ? 1 : 0;
 
       vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                          VK_SHADER_STAGE_VERTEX_BIT |
                              VK_SHADER_STAGE_FRAGMENT_BIT,
                          0, sizeof(SimplePushConstantData), &push);
-
-      obj.modelBuffer->bind(frameInfo.commandBuffer);
-      obj.modelBuffer->draw(frameInfo.commandBuffer);
+      if (obj.animatedModel)
+      {
+        obj.animatedModel->getModel()->bind(frameInfo.commandBuffer);
+        obj.animatedModel->getModel()->draw(frameInfo.commandBuffer);
+      }
+      else
+      {
+        obj.modelBuffer->bind(frameInfo.commandBuffer);
+        obj.modelBuffer->draw(frameInfo.commandBuffer);
+      }
     }
   }
 
