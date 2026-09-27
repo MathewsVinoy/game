@@ -3,6 +3,7 @@
 #include "engine/render/buffer.hpp"
 #include "engine/render/camera.hpp"
 #include "engine/system/render_system.hpp"
+#include "engine/animation/bone_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -54,7 +55,18 @@ namespace engine
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
             uboBuffers[i]->map();
         }
-
+        std::vector<std::unique_ptr<BoneBuffer>> boneBuffers(
+            SwapChain::MAX_FRAMES_IN_FLIGHT);
+        std::vector<glm::mat4> initialBones(
+            BoneBuffer::MAX_BONES,
+            glm::mat4{1.0f});
+        for (int i = 0; i < boneBuffers.size(); i++)
+        {
+            boneBuffers[i] =
+                std::make_unique<BoneBuffer>(
+                    engineDevice,
+                    initialBones);
+        }
         auto globalSetLayout =
             DescriptorSetLayout::Builder(engineDevice)
                 .addBinding(
@@ -71,11 +83,12 @@ namespace engine
         for (int i = 0; i < globalDescriptorSets.size(); i++)
         {
             auto bufferInfo = uboBuffers[i]->descriptorInfo();
+            auto boneBufferInfo = boneBuffers[i]->descriptorInfo();
             DescriptorWriter(*globalSetLayout, *globalPool)
                 .writeBuffer(0, &bufferInfo)
+                .writeBuffer(1, &boneBufferInfo)
                 .build(globalDescriptorSets[i]);
         }
-
         RenderSystem renderSystem{engineDevice, renderer.getSwapChainRenderPass(),
                                   globalSetLayout->getDescriptorSetLayout()};
 
@@ -104,6 +117,10 @@ namespace engine
             {
                 updateCallback(frameTime);
             }
+            if (animatedCharacter)
+            {
+                animatedCharacter->update(frameTime);
+            }
 
             if (auto commandBuffer = renderer.beginFrame())
             {
@@ -114,6 +131,11 @@ namespace engine
                                     camera,
                                     globalDescriptorSets[frameIndex],
                                     gameObjects};
+                if (!boneBuffers.empty() && animatedCharacter)
+                {
+                    boneBuffers[frameIndex]->update(
+                        animatedCharacter->getAnimator()->getBoneMatrices());
+                }
 
                 GlobalUbo ubo{};
                 ubo.projection = camera.getProjection();
@@ -160,13 +182,20 @@ namespace engine
             ground.getId(),
             std::move(ground));
 
-        std::shared_ptr<ModelBuffer> model2 =
-            ModelBuffer::createModelFromFile(engineDevice, "assets/models/cube.obj");
-        auto flatVase = GameObject::createGameObject();
-        flatVase.modelBuffer = model2;
-        flatVase.transform.translation = {-.5f, .5f, 0.f};
-        flatVase.transform.scale = {3.f, 1.5f, 3.f};
-        gameObjects.emplace(flatVase.getId(), std::move(flatVase));
+        animatedCharacter = std::make_shared<AnimatedModel>(
+            engineDevice,
+            "assets/models/Standard Walk.fbx");
+        auto character = GameObject::createGameObject();
+        character.animatedModel = animatedCharacter;
+        character.transform.translation = {0.0f, 0.0f, 0.0f};
+        character.transform.scale = {
+            0.01f,
+            0.01f,
+            0.01f};
+        character.transform.rotation = {glm::radians(180.f), 0.0f, 0.0f};
+        gameObjects.emplace(
+            character.getId(),
+            std::move(character));
     }
 
 } // namespace engine

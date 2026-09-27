@@ -2,6 +2,7 @@
 
 #include "engine/core/devices.hpp"
 #include "engine/render/buffer.hpp"
+#include "engine/animation/skeleton.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -41,6 +42,9 @@ namespace engine
       bool skinned = false;
 
       void loadModel(const std::string &filepath);
+      void loadAnimatedModel(
+          const std::string &filepath,
+          const Skeleton &skeleton);
     };
 
     ModelBuffer(EngineDevice &device, const ModelBuffer::Builder &builder);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/render/model_buffers.hpp"
-// #include "engine/animation/animated_model.hpp"
+#include "engine/animation/animated_model.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -52,6 +52,7 @@ namespace engine
     TransformComponent transform{};
 
     std::shared_ptr<ModelBuffer> modelBuffer{};
+    std::shared_ptr<AnimatedModel> animatedModel{};
 
   private:
     GameObject(id_t objId) : id(objId) {}

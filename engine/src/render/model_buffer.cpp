@@ -31,6 +31,30 @@ namespace std
   };
 }
 
+namespace
+{
+
+  void addBoneData(
+      engine::ModelBuffer::Vertex &vertex,
+      int boneId,
+      float weight)
+  {
+    for (int i = 0; i < 4; ++i)
+    {
+      if (vertex.weights[i] == 0.0f)
+      {
+        vertex.boneIds[i] = boneId;
+        vertex.weights[i] = weight;
+        return;
+      }
+    }
+
+    // More than 4 bones affect this vertex.
+    // We currently keep only the first 4.
+  }
+
+}
+
 namespace engine
 {
 
@@ -163,23 +187,16 @@ namespace engine
 
     attributeDescriptions.push_back(
         {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
-
     attributeDescriptions.push_back(
-        {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)});
-
+        {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
     attributeDescriptions.push_back(
-        {2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
-
-    attributeDescriptions.push_back(
-        {3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
-
+        {2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
     // Bone IDs
     attributeDescriptions.push_back(
-        {4, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(Vertex, boneIds)});
-
+        {3, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(Vertex, boneIds)});
     // Bone weights
     attributeDescriptions.push_back(
-        {5, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, weights)});
+        {4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, weights)});
 
     return attributeDescriptions;
   }
@@ -244,6 +261,138 @@ namespace engine
         }
         indices.push_back(uniqueVertices[vertex]);
       }
+    }
+  }
+
+  void ModelBuffer::Builder::loadAnimatedModel(
+      const std::string &filepath,
+      const Skeleton &skeleton)
+  {
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile(
+        filepath,
+        aiProcess_Triangulate |
+            aiProcess_GenSmoothNormals |
+            aiProcess_FlipUVs |
+            aiProcess_LimitBoneWeights);
+    if (!scene || !scene->mRootNode)
+    {
+      throw std::runtime_error(
+          "Failed to load animated model: " +
+          std::string(importer.GetErrorString()));
+    }
+    vertices.clear();
+    indices.clear();
+    skinned = true;
+    uint32_t vertexOffset = 0;
+    for (unsigned int meshIndex = 0;
+         meshIndex < scene->mNumMeshes;
+         ++meshIndex)
+    {
+      const aiMesh *mesh =
+          scene->mMeshes[meshIndex];
+      // ----------------------------------------
+      // Vertices
+      // ----------------------------------------
+      for (unsigned int i = 0;
+           i < mesh->mNumVertices;
+           ++i)
+      {
+        Vertex vertex{};
+        vertex.position = {
+            mesh->mVertices[i].x,
+            mesh->mVertices[i].y,
+            mesh->mVertices[i].z};
+        if (mesh->HasNormals())
+        {
+          vertex.normal = {
+              mesh->mNormals[i].x,
+              mesh->mNormals[i].y,
+              mesh->mNormals[i].z};
+        }
+        if (mesh->HasTextureCoords(0))
+        {
+          vertex.uv = {
+              mesh->mTextureCoords[0][i].x,
+              mesh->mTextureCoords[0][i].y};
+        }
+        vertex.color = {
+            1.0f,
+            1.0f,
+            1.0f};
+        vertices.push_back(vertex);
+      }
+      // ----------------------------------------
+      // Bone IDs + weights
+      // ----------------------------------------
+      for (unsigned int boneIndex = 0;
+           boneIndex < mesh->mNumBones;
+           ++boneIndex)
+      {
+        const aiBone *bone =
+            mesh->mBones[boneIndex];
+        // IMPORTANT:
+        // For now boneIndex is the mesh-local
+        // bone index.
+        //
+        // We will replace this with your
+        // Skeleton's global bone index in the
+        // next stage.
+        const std::string boneName =
+            bone->mName.C_Str();
+        const Bone *skeletonBone =
+            skeleton.findBone(boneName);
+        if (skeletonBone == nullptr)
+        {
+          std::cerr
+              << "Warning: bone not found in skeleton: "
+              << boneName
+              << std::endl;
+          continue;
+        }
+        int id =
+            static_cast<int>(
+                skeletonBone -
+                &skeleton.getBones()[0]);
+        for (unsigned int weightIndex = 0;
+             weightIndex < bone->mNumWeights;
+             ++weightIndex)
+        {
+          const aiVertexWeight &weight =
+              bone->mWeights[weightIndex];
+          uint32_t vertexIndex =
+              vertexOffset +
+              weight.mVertexId;
+          if (vertexIndex >= vertices.size())
+          {
+            continue;
+          }
+          addBoneData(
+              vertices[vertexIndex],
+              id,
+              weight.mWeight);
+        }
+      }
+      // ----------------------------------------
+      // Indices
+      // ----------------------------------------
+      for (unsigned int faceIndex = 0;
+           faceIndex < mesh->mNumFaces;
+           ++faceIndex)
+      {
+        const aiFace &face =
+            mesh->mFaces[faceIndex];
+        for (unsigned int i = 0;
+             i < face.mNumIndices;
+             ++i)
+        {
+          indices.push_back(
+              vertexOffset +
+              face.mIndices[i]);
+        }
+      }
+      vertexOffset =
+          static_cast<uint32_t>(vertices.size());
     }
   }
 

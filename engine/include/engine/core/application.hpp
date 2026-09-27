@@ -5,6 +5,7 @@
 #include "engine/render/object.hpp"
 #include "engine/render/renderer.hpp"
 #include "engine/builder/descriptors.hpp"
+#include "engine/animation/animated_model.hpp"
 
 namespace engine
 {
@@ -35,5 +36,6 @@ namespace engine
         std::unique_ptr<DescriptorPool> globalPool{};
         GameObject::Map gameObjects;
         UpdateCallback updateCallback{};
+        std::shared_ptr<AnimatedModel> animatedCharacter;
     };
 }
