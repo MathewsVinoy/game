@@ -49,6 +49,7 @@ namespace engine
     id_t getId() { return id; }
 
     glm::vec3 color{};
+    bool isGround{false};
     TransformComponent transform{};
 
     std::shared_ptr<ModelBuffer> modelBuffer{};
