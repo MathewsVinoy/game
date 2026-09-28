@@ -6,98 +6,192 @@ layout(location = 2) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
+
+// ======================================================
+// Directional Light
+// ======================================================
+
 struct DirectionalLight {
     vec3 direction;
     vec4 color;
 };
 
+
+// ======================================================
+// Global Uniform Buffer
+// ======================================================
+
 layout(set = 0, binding = 0) uniform GlobalUbo {
+
     mat4 projection;
     mat4 view;
     mat4 invView;
 
     vec4 ambientLightColor;
+
     DirectionalLight sunlight;
+
     int numLights;
+
 } ubo;
 
+
+// ======================================================
+// Push Constants
+// ======================================================
+
 layout(push_constant) uniform Push {
+
     mat4 modelMatrix;
     mat4 normalMatrix;
 
-    vec4 color; // rgb = color, a = 0 → checkerboard ground, a = 1 → solid color
+    // RGB = object color
+    // A = 0 -> checkerboard ground
+    // A = 1 -> normal object
+    vec4 color;
 
     int uSkinned;
-   
-   
+
 } push;
 
-void main() {
 
-    // --------------------------------------------------
-    // Base color  (checkerboard if alpha == 0)
-    // --------------------------------------------------
+void main()
+{
+    // ==================================================
+    // BASE COLOR
+    // ==================================================
 
     vec3 base;
 
-    if (push.color.a < 0.5) {
-        // Checkerboard ground using world-space XZ position
-        float scale = 1.0; // one tile per world unit
-        vec2  tile  = floor(fragPosWorld.xz / scale);
-        float check = mod(tile.x + tile.y, 2.0);
-        // two shades of grey
-        base = mix(vec3(0.30, 0.30, 0.35), vec3(0.45, 0.45, 0.50), check);
-    } else {
-        base = pow(push.color.rgb, vec3(2.2));
+
+    // --------------------------------------------------
+    // CHECKERBOARD GROUND
+    // --------------------------------------------------
+
+    if (push.color.a < 0.5)
+    {
+        // The reference image uses a larger checker pattern.
+        float tileSize = 8.0;
+
+
+        // Determine which tile we are inside
+        vec2 tile =
+            floor(
+                fragPosWorld.xz / tileSize
+            );
+
+
+        // Alternate between 0 and 1
+        float check =
+            mod(
+                tile.x + tile.y,
+                2.0
+            );
+
+
+        // Reference floor colors: cool charcoal dark squares and
+        // soft light-gray tiles with a slightly blue undertone.
+        vec3 darkTile =
+            vec3(
+                0.43,
+                0.45,
+                0.49
+            );
+
+
+        vec3 lightTile =
+            vec3(
+                0.72,
+                0.74,
+                0.77
+            );
+
+
+        // Select tile color
+        base =
+            mix(
+                darkTile,
+                lightTile,
+                check
+            );
     }
 
+
     // --------------------------------------------------
-    // Surface normal
+    // NORMAL OBJECT COLOR
     // --------------------------------------------------
 
+    else
+    {
+        base =
+            pow(
+                push.color.rgb,
+                vec3(2.2)
+            );
+    }
+
+
+    // ==================================================
+    // SURFACE NORMAL
+    // ==================================================
+
     vec3 surfaceNormal =
-        normalize(fragNormalWorld);
+        normalize(
+            fragNormalWorld
+        );
+
 
     // Correct normal for back-facing triangles
     if (!gl_FrontFacing)
-        surfaceNormal = -surfaceNormal;
+    {
+        surfaceNormal =
+            -surfaceNormal;
+    }
 
-    // --------------------------------------------------
-    // Camera direction
-    // --------------------------------------------------
+
+    // ==================================================
+    // CAMERA POSITION
+    // ==================================================
 
     vec3 cameraPosWorld =
         ubo.invView[3].xyz;
 
+
+    // Direction from fragment to camera
     vec3 viewDirection =
         normalize(
-            cameraPosWorld - fragPosWorld
+            cameraPosWorld -
+            fragPosWorld
         );
 
-    // --------------------------------------------------
-    // Directional light
-    // --------------------------------------------------
+
+    // ==================================================
+    // DIRECTIONAL LIGHT
+    // ==================================================
 
     vec3 lightDirection =
         normalize(
             -ubo.sunlight.direction
         );
 
+
     vec3 lightIntensity =
         ubo.sunlight.color.xyz *
         ubo.sunlight.color.w;
 
-    // --------------------------------------------------
-    // Ambient light
-    // --------------------------------------------------
 
-    vec3 diffuseLight =
+    // ==================================================
+    // AMBIENT LIGHT
+    // ==================================================
+
+    vec3 ambientLight =
         ubo.ambientLightColor.xyz *
         ubo.ambientLightColor.w;
 
-    // --------------------------------------------------
-    // Diffuse lighting
-    // --------------------------------------------------
+
+    // ==================================================
+    // DIFFUSE LIGHT
+    // ==================================================
 
     float cosAngIncidence =
         max(
@@ -108,19 +202,23 @@ void main() {
             0.0
         );
 
-    diffuseLight +=
+
+    vec3 diffuseLight =
+        ambientLight +
         lightIntensity *
         cosAngIncidence;
 
-    // --------------------------------------------------
-    // Blinn-Phong specular
-    // --------------------------------------------------
+
+    // ==================================================
+    // BLINN-PHONG SPECULAR
+    // ==================================================
 
     vec3 halfAngle =
         normalize(
             lightDirection +
             viewDirection
         );
+
 
     float blinnTerm =
         max(
@@ -131,25 +229,70 @@ void main() {
             0.0
         );
 
+
     blinnTerm =
-        pow(blinnTerm, 32.0);
+        pow(
+            blinnTerm,
+            32.0
+        );
+
 
     vec3 specularLight =
         lightIntensity *
         blinnTerm *
         0.15;
 
+
+    // ==================================================
+    // FINAL COLOR
+    // ==================================================
+
+    vec3 finalColor;
+
+
     // --------------------------------------------------
-    // Final color
+    // GROUND
     // --------------------------------------------------
 
-    vec3 diffuseColor =
-        diffuseLight * base;
+    if (push.color.a < 0.5)
+    {
+        // IMPORTANT:
+        //
+        // Do NOT multiply the checkerboard by
+        // directional lighting.
+        //
+        // Otherwise the horizontal ground can
+        // become completely black depending on
+        // the sunlight direction.
 
-    vec3 finalColor =
-        diffuseColor +
-        specularLight;
+        finalColor = base;
+    }
+
+
+    // --------------------------------------------------
+    // NORMAL OBJECTS
+    // --------------------------------------------------
+
+    else
+    {
+        vec3 diffuseColor =
+            diffuseLight *
+            base;
+
+
+        finalColor =
+            diffuseColor +
+            specularLight;
+    }
+
+
+    // ==================================================
+    // OUTPUT
+    // ==================================================
 
     outColor =
-        vec4(finalColor, 1.0);
+        vec4(
+            finalColor,
+            1.0
+        );
 }
