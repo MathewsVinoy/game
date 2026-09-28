@@ -21,13 +21,11 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     int numLights;
 } ubo;
 
-layout(set = 1, binding = 0) uniform sampler2D uTex;
-
 layout(push_constant) uniform Push {
     mat4 modelMatrix;
     mat4 normalMatrix;
 
-    vec4 color;
+    vec4 color; // rgb = color, a = 0 → checkerboard ground, a = 1 → solid color
 
     int uSkinned;
    
@@ -37,11 +35,21 @@ layout(push_constant) uniform Push {
 void main() {
 
     // --------------------------------------------------
-    // Base color
+    // Base color  (checkerboard if alpha == 0)
     // --------------------------------------------------
 
-    vec3 base =
-        pow(push.color.rgb, vec3(2.2));
+    vec3 base;
+
+    if (push.color.a < 0.5) {
+        // Checkerboard ground using world-space XZ position
+        float scale = 1.0; // one tile per world unit
+        vec2  tile  = floor(fragPosWorld.xz / scale);
+        float check = mod(tile.x + tile.y, 2.0);
+        // two shades of grey
+        base = mix(vec3(0.30, 0.30, 0.35), vec3(0.45, 0.45, 0.50), check);
+    } else {
+        base = pow(push.color.rgb, vec3(2.2));
+    }
 
     // --------------------------------------------------
     // Surface normal
