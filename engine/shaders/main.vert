@@ -36,11 +36,13 @@ layout(push_constant) uniform Push {
     vec4 color;
 
     int uSkinned;
-    
-    
 } push;
 
-void main() {
+void main()
+{
+    // --------------------------------------------------
+    // Default vertex data
+    // --------------------------------------------------
 
     vec4 localPosition = vec4(position, 1.0);
     vec3 localNormal = normal;
@@ -49,13 +51,13 @@ void main() {
     // Skeletal animation
     // --------------------------------------------------
 
-    if (push.uSkinned == 1) {
-
+    if (push.uSkinned == 1)
+    {
         mat4 skin = mat4(0.0);
         float totalWeight = 0.0;
 
-        for (int i = 0; i < 4; ++i) {
-
+        for (int i = 0; i < 4; ++i)
+        {
             int boneId = aBoneIds[i];
             float weight = aWeights[i];
 
@@ -66,32 +68,34 @@ void main() {
             totalWeight += weight;
         }
 
-        if (totalWeight > 0.0) {
-
-            // Make sure weights are normalized
+        if (totalWeight > 0.0)
+        {
+            // Normalize weights
             skin /= totalWeight;
 
-            // Transform vertex position
+            // Transform position
             localPosition = skin * localPosition;
 
-            // Transform vertex normal
+            // Transform normal
             mat3 skinNormalMatrix =
                 transpose(inverse(mat3(skin)));
 
             localNormal =
-                normalize(skinNormalMatrix * localNormal);
+                normalize(
+                    skinNormalMatrix * localNormal
+                );
         }
     }
 
     // --------------------------------------------------
-    // Local → World
+    // Local -> World
     // --------------------------------------------------
 
     vec4 positionWorld =
         push.modelMatrix * localPosition;
 
     // --------------------------------------------------
-    // World → Camera → Clip
+    // World -> View -> Clip
     // --------------------------------------------------
 
     gl_Position =
@@ -103,11 +107,13 @@ void main() {
     // Send data to fragment shader
     // --------------------------------------------------
 
-    fragPosWorld = positionWorld.xyz;
+    fragPosWorld =
+        positionWorld.xyz;
 
     fragNormalWorld =
         normalize(
-            mat3(push.normalMatrix) * localNormal
+            mat3(push.normalMatrix) *
+            localNormal
         );
 
     fragUV = uv;
