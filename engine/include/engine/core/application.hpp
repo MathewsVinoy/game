@@ -6,6 +6,7 @@
 #include "engine/render/renderer.hpp"
 #include "engine/builder/descriptors.hpp"
 #include "engine/animation/animated_model.hpp"
+#include "engine/input/keyboard_controller.hpp"
 
 namespace engine
 {
@@ -37,5 +38,10 @@ namespace engine
         GameObject::Map gameObjects;
         UpdateCallback updateCallback{};
         std::shared_ptr<AnimatedModel> animatedCharacter;
+        KeyboardMovementController keyboardController{};
+
+        float mouseYaw = 0.0f;
+        float mousePitch = 0.0f;
+        bool mouseInitialized = false;
     };
 }
