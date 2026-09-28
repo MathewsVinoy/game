@@ -15,6 +15,7 @@
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <cmath>
 #include <numeric>
 #include <stdexcept>
 #include <utility>
@@ -93,15 +94,29 @@ namespace engine
                                   globalSetLayout->getDescriptorSetLayout()};
 
         Camera camera{};
+
         camera.setPerspectiveProjection(
-            glm::radians(50.0f),
-            static_cast<float>(Application::WIDTH) /
-                static_cast<float>(Application::HEIGHT),
+            glm::radians(60.0f),
+            renderer.getAspectRatio(),
             0.1f,
-            100.0f);
-        camera.setViewTarget(glm::vec3{0.0f, 1.5f, 8.0f}, glm::vec3{0.0f, 0.5f, 0.0f},
-                             glm::vec3{0.0f, 1.0f, 0.0f});
+            1000.0f);
+
+        camera.setViewTarget(
+            glm::vec3{0.0f, 1.5f, 8.0f}, // camera position
+            glm::vec3{0.0f, 0.5f, 0.0f}, // target/player position
+            glm::vec3{0.0f, 1.0f, 0.0f}  // up direction
+        );
+
         glfwSetInputMode(window.getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        keyboardController.setWindow(window.getGLFWwindow());
+
+        int windowWidth = 0;
+        int windowHeight = 0;
+        glfwGetWindowSize(window.getGLFWwindow(), &windowWidth, &windowHeight);
+        const double centerX = static_cast<double>(windowWidth) * 0.5;
+        const double centerY = static_cast<double>(windowHeight) * 0.5;
+        glfwSetCursorPos(window.getGLFWwindow(), centerX, centerY);
+        mouseInitialized = true;
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         while (!window.shouldClose())
@@ -113,6 +128,43 @@ namespace engine
                                                                            currentTime)
                     .count();
             currentTime = newTime;
+
+            auto playerIt = std::find_if(gameObjects.begin(), gameObjects.end(), [](const auto &entry)
+                                         { return entry.second.animatedModel != nullptr; });
+            if (playerIt != gameObjects.end())
+            {
+                auto &player = playerIt->second;
+                glm::vec3 moveInput = keyboardController.getMovementVector();
+                const bool isMoving = glm::dot(moveInput, moveInput) > 0.0f;
+
+                glm::vec3 forward =
+                    glm::normalize(glm::vec3(std::sin(mouseYaw), 0.0f, std::cos(mouseYaw)));
+                glm::vec3 right =
+                    glm::normalize(glm::vec3(std::cos(mouseYaw), 0.0f, -std::sin(mouseYaw)));
+                glm::vec3 worldMove = forward * moveInput.z + right * moveInput.x;
+
+                if (isMoving)
+                {
+                    const float moveSpeed = 5.0f;
+                    player.transform.rotation.y = std::atan2(worldMove.x, worldMove.z);
+                    player.transform.translation += worldMove * moveSpeed * frameTime;
+                }
+
+                if (animatedCharacter)
+                {
+                    animatedCharacter->setMovement(isMoving);
+                }
+
+                const glm::vec3 playerPosition = player.transform.translation;
+                const glm::vec3 cameraOffset = glm::vec3{
+                    std::sin(mouseYaw) * 6.0f,
+                    2.5f + std::sin(mousePitch) * 4.0f,
+                    std::cos(mouseYaw) * -6.0f};
+                const glm::vec3 cameraTarget = playerPosition + glm::vec3{0.0f, 1.5f, 0.0f};
+                const glm::vec3 cameraPosition = playerPosition + cameraOffset;
+                camera.setViewTarget(cameraPosition, cameraTarget, glm::vec3{0.0f, 1.0f, 0.0f});
+            }
+
             if (updateCallback)
             {
                 updateCallback(frameTime);
@@ -181,66 +233,10 @@ namespace engine
                 {0, 1, 2, 0, 2, 3});
         auto ground = GameObject::createGameObject();
         ground.modelBuffer = groundModel;
-        ground.color = glm::vec3(0.0f); // a=0 triggers checkerboard in shader
+        ground.color = glm::vec3(0.0f);
+        ground.isGround = true; // alpha=0 triggers checkerboard in shader
         gameObjects.emplace(ground.getId(), std::move(ground));
 
-        // -------------------------------------------------------
-        // Helper: build a simple AABB cube centered at origin
-        // -------------------------------------------------------
-        auto makeCube = [&](glm::vec3 pos, glm::vec3 scale, glm::vec3 color)
-        {
-            // 8 corners of a unit cube [-0.5, 0.5]^3
-            const glm::vec3 corners[8] = {
-                {-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f},
-                {0.5f,  0.5f, -0.5f}, {-0.5f,  0.5f, -0.5f},
-                {-0.5f, -0.5f,  0.5f}, {0.5f, -0.5f,  0.5f},
-                {0.5f,  0.5f,  0.5f}, {-0.5f,  0.5f,  0.5f},
-            };
-            // 6 faces: each face 4 vertices with flat normal
-            struct FaceDef { int idx[4]; glm::vec3 n; };
-            const FaceDef faces[6] = {
-                {{0,1,2,3}, { 0, 0,-1}}, // -Z
-                {{5,4,7,6}, { 0, 0, 1}}, // +Z
-                {{4,0,3,7}, {-1, 0, 0}}, // -X
-                {{1,5,6,2}, { 1, 0, 0}}, // +X
-                {{3,2,6,7}, { 0, 1, 0}}, // +Y
-                {{4,5,1,0}, { 0,-1, 0}}, // -Y
-            };
-            std::vector<ModelBuffer::Vertex> verts;
-            std::vector<uint32_t>            idxs;
-            for (const auto& f : faces)
-            {
-                uint32_t base = static_cast<uint32_t>(verts.size());
-                for (int k = 0; k < 4; k++)
-                {
-                    ModelBuffer::Vertex vtx{};
-                    vtx.position = corners[f.idx[k]];
-                    vtx.normal   = f.n;
-                    verts.push_back(vtx);
-                }
-                // two triangles per face
-                idxs.insert(idxs.end(),
-                    {base,base+1,base+2, base,base+2,base+3});
-            }
-            auto cubeModel = ModelBuffer::setbulder(engineDevice, verts, idxs);
-            auto obj = GameObject::createGameObject();
-            obj.modelBuffer = std::move(cubeModel);
-            obj.color = color;
-            obj.transform.translation = pos;
-            obj.transform.scale = scale;
-            gameObjects.emplace(obj.getId(), std::move(obj));
-        };
-
-        // Large cube — left side
-        makeCube({-4.5f, 0.75f, -2.0f}, {2.5f, 1.5f, 2.0f}, glm::vec3(0.75f));
-        // Small cube — center-right
-        makeCube({ 2.5f, 0.4f, -1.0f},  {1.0f, 0.8f, 0.9f}, glm::vec3(0.75f));
-        // Medium cube — far right
-        makeCube({ 6.5f, 0.6f, -1.5f},  {1.8f, 1.2f, 1.5f}, glm::vec3(0.75f));
-
-        // -------------------------------------------------------
-        // Animated character — coral red
-        // -------------------------------------------------------
         animatedCharacter = std::make_shared<AnimatedModel>(
             engineDevice,
             "assets/models/Standard Walk.fbx");
