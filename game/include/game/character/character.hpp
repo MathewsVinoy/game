@@ -31,7 +31,7 @@ namespace opengame
     float moveSpeed = 5.0f;
     float verticalVelocity = 0.0f;
     bool isGrounded = true;
-    const float GRAVITY_STRENGTH = 14.0f;
+    const float GRAVITY_STRENGTH = -9.81f;
     const float JUMP_STRENGTH = 6.0f;
     const float GROUND_LEVEL = 0.0f;
   };
