@@ -88,7 +88,7 @@ namespace engine
       push.modelMatrix = obj.transform.mat4();
       push.normalMatrix = glm::mat4(
           glm::transpose(glm::inverse(glm::mat3(obj.transform.mat4()))));
-      push.color = glm::vec4(obj.color, 1.0f);
+      push.color = glm::vec4(obj.color, obj.isGround ? 0.0f : 1.0f);
       push.uSkinned = (obj.animatedModel != nullptr) ? 1 : 0;
 
       vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
