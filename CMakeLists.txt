@@ -13,11 +13,5 @@ execute_process(
     RESULT_VARIABLE SCRIPT_RESULT
 )
 
-if(NOT SCRIPT_RESULT EQUAL 0)
-    message(WARNING
-        "tests/compile.sh returned ${SCRIPT_RESULT}"
-    )
-endif()
-
 add_subdirectory(engine)
 add_subdirectory(game)
