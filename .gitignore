@@ -45,6 +45,7 @@
 build/
 checkmate/
 *.spv
+*.zip
 lib/
 .env.cmake
 third_party/
