@@ -20,15 +20,11 @@ namespace engine
             const std::string &filepath);
 
         void update(float deltaTime);
-        void setMovement(bool isMoving);
 
         ModelBuffer *getModel() const;
         Animator *getAnimator() const;
 
     private:
-        std::string findIdleAnimationName() const;
-        std::string findMovementAnimationName() const;
-
         std::shared_ptr<ModelBuffer> model;
 
         Skeleton skeleton;
