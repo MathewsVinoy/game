@@ -1,47 +1,60 @@
 #pragma once
 
+#include "engine/core/descriptors.hpp"
 #include "engine/core/window.hpp"
-#include "engine/core/devices.hpp"
+#include "engine/render/devices.hpp"
 #include "engine/render/object.hpp"
+#include "engine/render/camera.hpp"
 #include "engine/render/renderer.hpp"
-#include "engine/builder/descriptors.hpp"
 #include "engine/animation/animated_model.hpp"
-#include "engine/input/keyboard_controller.hpp"
+
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace engine
 {
-    class Application
-    {
-    public:
-        static constexpr int WIDTH = 800;
-        static constexpr int HEIGHT = 600;
+  class Application
+  {
+  public:
+    static constexpr int WIDTH = 800;
+    static constexpr int HEIGHT = 600;
 
-        Application();
-        ~Application();
+    Application();
+    ~Application();
 
-        Application(const Application &) = delete;
-        Application &operator=(const Application &) = delete;
+    Application(const Application &) = delete;
+    Application &operator=(const Application &) = delete;
 
-        using UpdateCallback = std::function<void(float)>;
-        void setUpdateCallback(UpdateCallback callback);
+    using UpdateCallback = std::function<void(float)>;
 
-        void run();
+    void setUpdateCallback(UpdateCallback callback);
+    void run();
+    GameObject::id_t renderGameObjects(std::string modelPath,
+                                       glm::vec3 translation = {0.f, 0.f, 0.f},
+                                       glm::vec3 scale = {1.f, 1.f, 1.f},
+                                       glm::vec3 rotation = {0.f, 0.f, 0.f});
 
-    private:
-        void loadGameObjects();
+    Window &getWindow();
+    GameObject::Map &getGameObjects();
+    Camera &getCamera();
 
-        Window window{WIDTH, HEIGHT, "Open Game"};
-        EngineDevice engineDevice{window};
-        Renderer renderer{window, engineDevice};
+    float getYaw() const { return yaw; }
 
-        std::unique_ptr<DescriptorPool> globalPool{};
-        GameObject::Map gameObjects;
-        UpdateCallback updateCallback{};
-        std::shared_ptr<AnimatedModel> animatedCharacter;
-        KeyboardMovementController keyboardController{};
+  private:
+    void loadGameObjects();
 
-        float mouseYaw = 0.0f;
-        float mousePitch = 0.0f;
-        bool mouseInitialized = false;
-    };
-}
+    float yaw = 0.f;
+
+    Window window{WIDTH, HEIGHT, "Engine"};
+    EngineDevice engineDevice{window};
+    Renderer renderer{window, engineDevice};
+    Camera camera{};
+
+    std::unique_ptr<DescriptorPool> globalPool{};
+    GameObject::Map gameObjects;
+    UpdateCallback updateCallback{};
+    std::shared_ptr<AnimatedModel> animatedCharacter;
+  };
+} // namespace engine
