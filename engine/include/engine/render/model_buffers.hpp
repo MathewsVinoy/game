@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/core/devices.hpp"
+#include "engine/render/devices.hpp"
 #include "engine/render/buffer.hpp"
 #include "engine/animation/skeleton.hpp"
 

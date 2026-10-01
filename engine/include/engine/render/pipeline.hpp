@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/core/devices.hpp"
+#include "engine/render/devices.hpp"
 
 // std
 #include <string>

@@ -26,6 +26,11 @@ namespace engine
     glm::mat3 normalMatrix();
   };
 
+  struct PointLightComponent
+  {
+    float lightIntensity = 1.0f;
+  };
+
   class GameObject
   {
   public:
@@ -49,11 +54,11 @@ namespace engine
     id_t getId() { return id; }
 
     glm::vec3 color{};
-    bool isGround{false};
     TransformComponent transform{};
 
     std::shared_ptr<ModelBuffer> modelBuffer{};
     std::shared_ptr<AnimatedModel> animatedModel{};
+    std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
   private:
     GameObject(id_t objId) : id(objId) {}

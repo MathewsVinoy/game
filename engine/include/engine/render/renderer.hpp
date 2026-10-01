@@ -1,8 +1,9 @@
 #pragma once
 
 #include "engine/core/window.hpp"
-#include "engine/core/devices.hpp"
-#include "engine/core/swap_chain.hpp"
+#include "engine/render/devices.hpp"
+#include "engine/render/swap_chain.hpp"
+#include "engine/system/render_system.hpp"
 
 #include <memory>
 #include <vector>
@@ -52,6 +53,7 @@ namespace engine
         EngineDevice &engineDevice;
         std::unique_ptr<SwapChain> swapChain;
         std::vector<VkCommandBuffer> commandBuffers;
+        GameObject::Map gameObjects;
 
         uint32_t currentImageIndex = 0;
         int currentFrameIndex = 0;

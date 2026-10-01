@@ -1,8 +1,7 @@
 #pragma once
 
+#include "engine/render/object.hpp"
 #include "engine/core/window.hpp"
-
-#include <glm/glm.hpp>
 
 namespace engine
 {
@@ -20,23 +19,20 @@ namespace engine
       int characterMoveForward = GLFW_KEY_W;
       int characterMoveBackward = GLFW_KEY_S;
 
+      int lshift = GLFW_KEY_LEFT_SHIFT;
+
       int spacebar = GLFW_KEY_SPACE;
     };
-    static const int kMaxKeys = 512;
+
+    // void moveInPlaneXZ(GLFWwindow *window, float dt, GameObject &gameObject);
 
     bool getKeyState(int key) const { return window != nullptr && glfwGetKey(window, key) == GLFW_PRESS; }
-    bool isDown(int key) const { return key >= 0 && key < kMaxKeys && down_[key]; };
-    bool wasPressed(int key) const { return key >= 0 && key < kMaxKeys && pressed_[key]; }
-    glm::vec3 getMovementVector() const;
 
-    void onKey(int key, int action);
     void setWindow(GLFWwindow *newWindow) { window = newWindow; }
 
     KeyMappings keys{};
 
   private:
     GLFWwindow *window{};
-    bool down_[kMaxKeys]{false};
-    bool pressed_[kMaxKeys]{false};
   };
 }
