@@ -1,12 +1,15 @@
-#include "engine/core/application.hpp"
+#include "app.hpp"
+
+#include <vulkan/vulkan.h>
 
 #include <iostream>
-#include <cstdlib>
 #include <stdexcept>
+#include <cstdlib>
 
 int main()
 {
-    engine::Application app{};
+    graphics::HelloTriangleApplication app;
+
     try
     {
         app.run();
@@ -16,5 +19,6 @@ int main()
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }

@@ -1,23 +1,29 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 
-project(OpenGame
-    VERSION 0.1.0
-    LANGUAGES CXX
-)
+project(OpenGame LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-execute_process(
-    COMMAND /bin/sh ${CMAKE_SOURCE_DIR}/tests/compile.sh
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests
-    RESULT_VARIABLE SCRIPT_RESULT
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+    main/*.cpp
+    main/*.hpp
 )
 
-if(NOT SCRIPT_RESULT EQUAL 0)
-    message(WARNING
-        "tests/compile.sh returned ${SCRIPT_RESULT}"
-    )
-endif()
+add_executable(OpenGame ${SOURCES})
 
-add_subdirectory(engine)
-add_subdirectory(game)
+target_compile_options(OpenGame PRIVATE
+    -O2
+)
+
+target_link_libraries(OpenGame PRIVATE
+    glfw
+    vulkan
+    dl
+    pthread
+    X11
+    Xxf86vm
+    Xrandr
+    Xi
+)
