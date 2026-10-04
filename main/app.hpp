@@ -15,8 +15,10 @@ namespace graphics
         void initVulkan();
         void mainLoop();
         void cleanup();
+        void createInstance();
 
         GLFWwindow *window;
+        VkInstance instance;
         const uint32_t WIDTH = 800;
         const uint32_t HEIGHT = 600;
     };
