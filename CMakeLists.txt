@@ -8,11 +8,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     main/*.cpp
-    main/*.hpp
-    main/*.h
+    core/*.cpp
+    core/*.hpp
+    graphics/*.hpp
+    graphics/*.cpp
+    inputs/*.hpp
+    inputs/*.h
+    inputs/*.cpp
 )
 
 add_executable(OpenGame ${SOURCES})
+
+target_include_directories(OpenGame PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/third_party
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tinyobjloader
+)
 
 target_compile_options(OpenGame PRIVATE
     -O2
@@ -27,4 +38,5 @@ target_link_libraries(OpenGame PRIVATE
     Xxf86vm
     Xrandr
     Xi
+    assimp
 )

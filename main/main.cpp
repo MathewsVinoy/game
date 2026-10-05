@@ -1,6 +1,4 @@
-#include "app.hpp"
-
-#include <vulkan/vulkan.h>
+#include "core/application.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -8,7 +6,7 @@
 
 int main()
 {
-    graphics::HelloTriangleApplication app;
+    engine::Application app{};
 
     try
     {
