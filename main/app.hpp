@@ -16,9 +16,17 @@ namespace graphics
         void mainLoop();
         void cleanup();
         void createInstance();
+        void createSurface();
+        void createLogicalDevice();
+
+        void setupDebugMessenger();
 
         GLFWwindow *window;
         VkInstance instance;
+        VkDevice device;
+        VkQueue graphicsQueue;
+        VkDebugUtilsMessengerEXT debugMessenger;
+
         const uint32_t WIDTH = 800;
         const uint32_t HEIGHT = 600;
     };
