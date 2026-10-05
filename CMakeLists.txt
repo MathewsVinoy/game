@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     main/*.cpp
+    main/*.hpp
     core/*.cpp
     core/*.hpp
     graphics/*.hpp
@@ -15,6 +16,8 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     inputs/*.hpp
     inputs/*.h
     inputs/*.cpp
+    player/*.cpp
+    player/*.hpp
 )
 
 add_executable(OpenGame ${SOURCES})
