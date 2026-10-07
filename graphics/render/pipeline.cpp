@@ -8,7 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace engine
+namespace graphics
 {
 
     Pipeline::Pipeline(
@@ -215,4 +215,4 @@ namespace engine
         configInfo.attributeDescriptions = ModelBuffer::Vertex::getAttributeDescriptions();
     }
 
-} // namespace engine
+} // namespace graphics

@@ -6,7 +6,7 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace engine
+namespace graphics
 {
 
     Renderer::Renderer(Window &window, EngineDevice &device) : window{window}, engineDevice{device}
@@ -161,4 +161,4 @@ namespace engine
         vkCmdEndRenderPass(commandBuffer);
     }
 
-} // namespace engine
+} // namespace graphics

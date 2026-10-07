@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace engine
+namespace graphics
 {
 
     struct Bone

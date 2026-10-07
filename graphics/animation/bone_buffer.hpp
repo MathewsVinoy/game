@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
     class BoneBuffer

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
   struct PipelineConfigInfo
@@ -63,4 +63,4 @@ namespace engine
     VkShaderModule vertShaderModule;
     VkShaderModule fragShaderModule;
   };
-} // namespace engine
+} // namespace graphics

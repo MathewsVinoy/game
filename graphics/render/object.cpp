@@ -1,6 +1,6 @@
 #include "object.hpp"
 
-namespace engine
+namespace graphics
 {
 
     glm::mat4 TransformComponent::mat4()

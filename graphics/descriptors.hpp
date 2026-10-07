@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
     class DescriptorSetLayout
@@ -105,4 +105,4 @@ namespace engine
         std::vector<VkWriteDescriptorSet> writes;
     };
 
-} // namespace engine
+} // namespace graphics

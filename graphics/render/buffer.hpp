@@ -2,7 +2,7 @@
 
 #include "graphics/core/devices.hpp"
 
-namespace engine
+namespace graphics
 {
 
     class EngineBuffer
@@ -58,4 +58,4 @@ namespace engine
         VkMemoryPropertyFlags memoryPropertyFlags;
     };
 
-} // namespace engine
+} // namespace graphics

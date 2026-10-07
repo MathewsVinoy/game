@@ -7,7 +7,7 @@
 #include <iostream>
 #include <cmath>
 
-namespace engine
+namespace graphics
 {
 
     Animator::Animator(

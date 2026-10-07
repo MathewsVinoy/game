@@ -3,7 +3,7 @@
 #include "inputs/keyboard_controller.h"
 #include "objects.hpp"
 
-namespace engine
+namespace graphics
 {
   class Application;
 }
@@ -18,7 +18,7 @@ namespace opengame
 
     Object getObject();
     void move(float dt);
-    void loadCharacterModel(engine::Application &app);
+    void loadCharacterModel(graphics::Application &app);
     void resolveGroundCollision();
     void updateCamera(float dt);
 
@@ -26,11 +26,11 @@ namespace opengame
     Object object;
     KeyboardMovementController controller;
     KeyboardMovementController::KeyMappings keyMappings;
-    engine::Application *application{nullptr};
-    engine::GameObject::id_t renderObjectId{0};
+    graphics::Application *application{nullptr};
+    graphics::GameObject::id_t renderObjectId{0};
 
     float moveSpeed = 5.0f;
-    float sprintSpeed = 100.0f;
+    float sprintSpeed = 10.0f;
 
     float verticalVelocity = 0.0f;
     bool isGrounded = true;

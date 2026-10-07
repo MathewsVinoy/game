@@ -9,7 +9,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace engine
+namespace graphics
 {
 
   struct TransformComponent
@@ -64,4 +64,4 @@ namespace engine
     GameObject(id_t objId) : id(objId) {}
     id_t id;
   };
-} // namespace engine
+} // namespace graphics

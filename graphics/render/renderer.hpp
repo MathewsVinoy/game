@@ -9,7 +9,7 @@
 #include <vector>
 #include <cassert>
 
-namespace engine
+namespace graphics
 {
     class Renderer
     {

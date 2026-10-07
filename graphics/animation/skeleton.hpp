@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
     class Skeleton

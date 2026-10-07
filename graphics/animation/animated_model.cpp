@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-namespace engine
+namespace graphics
 {
 
     AnimatedModel::AnimatedModel(

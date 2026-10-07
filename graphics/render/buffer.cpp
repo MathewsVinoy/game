@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstring>
 
-namespace engine
+namespace graphics
 {
 
     VkDeviceSize EngineBuffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment)
@@ -117,4 +117,4 @@ namespace engine
         return invalidate(alignmentSize, index * alignmentSize);
     }
 
-} // namespace engine
+} // namespace graphics

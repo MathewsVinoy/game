@@ -20,12 +20,12 @@
 namespace std
 {
   template <>
-  struct hash<engine::ModelBuffer::Vertex>
+  struct hash<graphics::ModelBuffer::Vertex>
   {
-    size_t operator()(engine::ModelBuffer::Vertex const &vertex) const
+    size_t operator()(graphics::ModelBuffer::Vertex const &vertex) const
     {
       size_t seed = 0;
-      engine::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+      graphics::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
       return seed;
     }
   };
@@ -35,7 +35,7 @@ namespace
 {
 
   void addBoneData(
-      engine::ModelBuffer::Vertex &vertex,
+      graphics::ModelBuffer::Vertex &vertex,
       int boneId,
       float weight)
   {
@@ -55,7 +55,7 @@ namespace
 
 }
 
-namespace engine
+namespace graphics
 {
 
   ModelBuffer::ModelBuffer(EngineDevice &device, const ModelBuffer::Builder &builder) : engineDevice{device}

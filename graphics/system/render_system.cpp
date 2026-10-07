@@ -9,7 +9,7 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace engine
+namespace graphics
 {
   struct SimplePushConstantData
   {
@@ -65,8 +65,8 @@ namespace engine
     pipelineConfig.renderPass = renderPass;
     pipelineConfig.pipelineLayout = pipelineLayout;
     pipeline = std::make_unique<Pipeline>(
-        engineDevice, "shaders/triangle.vert.spv",
-        "shaders/triangle.frag.spv", pipelineConfig);
+        engineDevice, "build/shaders/triangle.vert.spv",
+        "build/shaders/triangle.frag.spv", pipelineConfig);
   }
 
   void RenderSystem::renderGameObjects(FrameInfo &frameInfo)
@@ -106,4 +106,4 @@ namespace engine
     }
   }
 
-} // namespace engine
+} // namespace graphics

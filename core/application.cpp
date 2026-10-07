@@ -17,7 +17,7 @@
 #include <chrono>
 #include <numeric>
 #include <stdexcept>
-namespace engine
+namespace graphics
 {
 
   Application::Application()

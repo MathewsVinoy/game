@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-namespace engine
+namespace graphics
 {
     class Mouse
     {

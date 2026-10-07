@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
     class Animator

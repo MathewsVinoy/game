@@ -10,7 +10,7 @@ int main()
     try
     {
         opengame::Game game;
-        engine::Application app;
+        graphics::Application app;
         game.initialize(app);
         app.setUpdateCallback([&game](float deltaTime)
                               { game.update(deltaTime); });

@@ -6,7 +6,7 @@
 #include <set>
 #include <unordered_set>
 
-namespace engine
+namespace graphics
 {
 
   // local callback functions
@@ -608,4 +608,4 @@ namespace engine
     }
   }
 
-} // namespace engine
+} // namespace graphics

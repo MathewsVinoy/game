@@ -43,3 +43,51 @@ target_link_libraries(OpenGame PRIVATE
     Xi
     assimp
 )
+
+find_program(GLSLC glslc REQUIRED)
+
+set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
+set(SHADER_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+
+file(GLOB SHADER_SOURCES CONFIGURE_DEPENDS
+    "${SHADER_DIR}/*.vert"
+    "${SHADER_DIR}/*.frag"
+)
+
+set(SHADER_OUTPUTS)
+
+foreach(SHADER ${SHADER_SOURCES})
+
+    get_filename_component(SHADER_NAME ${SHADER} NAME)
+
+    set(SPIRV
+        "${SHADER_OUTPUT_DIR}/${SHADER_NAME}.spv"
+    )
+
+    add_custom_command(
+        OUTPUT "${SPIRV}"
+
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${SHADER_OUTPUT_DIR}"
+
+        COMMAND ${GLSLC}
+            "${SHADER}"
+            -o "${SPIRV}"
+
+        DEPENDS "${SHADER}"
+
+        COMMENT "Compiling ${SHADER_NAME} -> ${SHADER_NAME}.spv"
+
+        VERBATIM
+    )
+
+    list(APPEND SHADER_OUTPUTS "${SPIRV}")
+
+endforeach()
+
+add_custom_target(shaders ALL
+    DEPENDS ${SHADER_OUTPUTS}
+)
+
+add_dependencies(OpenGame shaders)
+

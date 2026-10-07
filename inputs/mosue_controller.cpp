@@ -1,6 +1,6 @@
 #include "mouse_controller.hpp"
 
-namespace engine
+namespace graphics
 {
     double Mouse::lastX = 400.0;
     double Mouse::lastY = 300.0;
@@ -59,4 +59,4 @@ namespace engine
         firstMouse = first;
     }
 
-} // namespace engine
+} // namespace graphics

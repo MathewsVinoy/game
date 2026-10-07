@@ -3,7 +3,7 @@
 #include <cassert>
 #include <limits>
 
-namespace engine
+namespace graphics
 {
 
     void Camera::setOrthographicProjection(
@@ -109,4 +109,4 @@ namespace engine
         inverseViewMatrix[3][1] = position.y;
         inverseViewMatrix[3][2] = position.z;
     }
-} // namespace engine
+} // namespace graphics

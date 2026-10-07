@@ -4,7 +4,7 @@
 
 #include <chrono>
 
-namespace engine
+namespace graphics
 {
     class Application;
 }
@@ -17,7 +17,7 @@ namespace opengame
         Game();
         ~Game();
 
-        void initialize(engine::Application &app);
+        void initialize(graphics::Application &app);
         void update(float deltaTime);
         void shutdown();
 

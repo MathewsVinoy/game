@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
     class SwapChain
@@ -91,4 +91,4 @@ namespace engine
         size_t currentFrame = 0;
     };
 
-} // namespace engine
+} // namespace graphics

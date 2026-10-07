@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace engine
+namespace graphics
 {
 
 #define MAX_LIGHTS 10

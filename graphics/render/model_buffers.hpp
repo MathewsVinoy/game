@@ -11,7 +11,7 @@
 #include <vector>
 #include <memory>
 
-namespace engine
+namespace graphics
 {
   class ModelBuffer
   {
@@ -82,4 +82,4 @@ namespace engine
     std::unique_ptr<EngineBuffer> indexBuffer;
     uint32_t indexCount;
   };
-} // namespace engine
+} // namespace graphics

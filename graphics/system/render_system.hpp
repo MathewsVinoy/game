@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
   class RenderSystem
   {
@@ -32,4 +32,4 @@ namespace engine
     std::unique_ptr<Pipeline> pipeline;
     VkPipelineLayout pipelineLayout;
   };
-} // namespace engine
+} // namespace graphics

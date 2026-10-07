@@ -3,7 +3,7 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace engine
+namespace graphics
 {
 
   DescriptorSetLayout::Builder &DescriptorSetLayout::Builder::addBinding(
@@ -206,4 +206,4 @@ namespace engine
     vkUpdateDescriptorSets(pool.engineDevice.device(), writes.size(), writes.data(), 0, nullptr);
   }
 
-} // namespace engine
+} // namespace graphics

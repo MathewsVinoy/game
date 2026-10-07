@@ -8,7 +8,7 @@ namespace opengame
 
     Game::~Game() {}
 
-    void Game::initialize(engine::Application &app)
+    void Game::initialize(graphics::Application &app)
     {
         character.loadCharacterModel(app);
         currentTime = std::chrono::high_resolution_clock::now();

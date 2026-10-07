@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace engine
+namespace graphics
 {
 
     BoneBuffer::BoneBuffer(

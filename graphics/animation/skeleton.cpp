@@ -1,6 +1,6 @@
 #include "skeleton.hpp"
 
-namespace engine
+namespace graphics
 {
 
     int Skeleton::addBone(

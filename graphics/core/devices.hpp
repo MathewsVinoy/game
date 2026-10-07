@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace engine
+namespace graphics
 {
 
   struct SwapChainSupportDetails
@@ -109,4 +109,4 @@ namespace engine
     const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   };
 
-} // namespace engine
+} // namespace graphics

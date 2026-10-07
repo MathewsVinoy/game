@@ -2,7 +2,7 @@
 
 #include <functional>
 
-namespace engine
+namespace graphics
 {
 
     template <typename T, typename... Rest>
@@ -12,4 +12,4 @@ namespace engine
         (hashCombine(seed, rest), ...);
     };
 
-} // namespace engine
+} // namespace graphics
