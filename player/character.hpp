@@ -2,6 +2,7 @@
 
 #include "inputs/keyboard_controller.h"
 #include "objects.hpp"
+#include "object/object.hpp"
 
 namespace graphics
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model_buffers.hpp"
+#include "graphics/render/model_buffers.hpp"
 #include "graphics/animation/animated_model.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -17,6 +17,7 @@ namespace graphics
     glm::vec3 translation{};
     glm::vec3 scale{1.f, 1.f, 1.f};
     glm::vec3 rotation{};
+    bool activeState{true};
 
     // Matrix corrsponds to Translate * Ry * Rx * Rz * Scale
     // Rotations correspond to Tait-bryan angles of Y(1), X(2), Z(3)
@@ -55,6 +56,16 @@ namespace graphics
 
     glm::vec3 color{};
     TransformComponent transform{};
+
+    glm::vec3 getPosition() const { return transform.translation; }
+    glm::vec3 getScale() const { return transform.scale; }
+    glm::vec3 getRotation() const { return transform.rotation; }
+    bool isActive() const { return transform.activeState; }
+
+    void setPosition(const glm::vec3 &pos) { transform.translation = pos; }
+    void setScale(const glm::vec3 &scale) { transform.scale = scale; }
+    void setRotation(const glm::vec3 &rotation) { transform.rotation = rotation; }
+    void setActive(bool active) { transform.activeState = active; }
 
     std::shared_ptr<ModelBuffer> modelBuffer{};
     std::shared_ptr<AnimatedModel> animatedModel{};

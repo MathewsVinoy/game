@@ -33,7 +33,6 @@ namespace graphics
                      .build();
 
     loadGameObjects();
-    // renderGameObjects();
   }
 
   Application::~Application() {}

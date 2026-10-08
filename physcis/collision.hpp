@@ -1,3 +1,9 @@
 #pragma once
 
-namespace ph
+namespace physics
+{
+    class GroundCollision
+    {
+    };
+
+}

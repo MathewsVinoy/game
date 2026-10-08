@@ -3,7 +3,7 @@
 #include "../frame_info.h"
 #include "graphics/render/camera.hpp"
 #include "graphics/core/devices.hpp"
-#include "graphics/render/object.hpp"
+#include "object/object.hpp"
 #include "graphics/render/pipeline.hpp"
 
 #include <memory>

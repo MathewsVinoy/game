@@ -1,6 +1,5 @@
 #pragma once
 
-#include "graphics/render/object.hpp"
 #include "core/window.hpp"
 
 class KeyboardMovementController
@@ -21,8 +20,6 @@ public:
 
     int spacebar = GLFW_KEY_SPACE;
   };
-
-  // void moveInPlaneXZ(GLFWwindow *window, float dt, GameObject &gameObject);
 
   bool getKeyState(int key) const { return window != nullptr && glfwGetKey(window, key) == GLFW_PRESS; }
 

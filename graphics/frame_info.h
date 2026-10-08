@@ -1,7 +1,7 @@
 #pragma once
 
 #include "render/camera.hpp"
-#include "render/object.hpp"
+#include "object/object.hpp"
 
 #include <vulkan/vulkan.h>
 

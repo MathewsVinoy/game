@@ -3,7 +3,7 @@
 #include "graphics/descriptors.hpp"
 #include "window.hpp"
 #include "graphics/core/devices.hpp"
-#include "graphics/render/object.hpp"
+#include "object/object.hpp"
 #include "graphics/render/camera.hpp"
 #include "graphics/render/renderer.hpp"
 #include "graphics/animation/animated_model.hpp"
