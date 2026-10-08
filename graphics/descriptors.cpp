@@ -137,8 +137,6 @@ namespace graphics
     vkResetDescriptorPool(engineDevice.device(), descriptorPool, 0);
   }
 
-  // *************** Descriptor Writer *********************
-
   DescriptorWriter::DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool)
       : setLayout{setLayout}, pool{pool} {}
 

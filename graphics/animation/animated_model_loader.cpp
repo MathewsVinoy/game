@@ -144,16 +144,12 @@ namespace graphics
         {
 
             std::cerr
-                << "Failed to load animated model: "
+                << "Failed to load model: "
                 << importer.GetErrorString()
                 << std::endl;
 
             return false;
         }
-
-        // --------------------------------------------------
-        // Load skeleton
-        // --------------------------------------------------
 
         std::unordered_map<std::string, int> boneMap;
 
@@ -163,10 +159,6 @@ namespace graphics
             skeleton,
             -1,
             boneMap);
-
-        // --------------------------------------------------
-        // Load animations
-        // --------------------------------------------------
 
         animations.clear();
 
@@ -193,10 +185,6 @@ namespace graphics
                     ? aiAnim->mTicksPerSecond
                     : 25.0;
 
-            // ----------------------------------------------
-            // Animation channels
-            // ----------------------------------------------
-
             for (unsigned int channelIndex = 0;
                  channelIndex < aiAnim->mNumChannels;
                  ++channelIndex)
@@ -209,10 +197,6 @@ namespace graphics
 
                 boneAnimation.boneName =
                     channel->mNodeName.C_Str();
-
-                // ------------------------------------------
-                // Positions
-                // ------------------------------------------
 
                 for (unsigned int i = 0;
                      i < channel->mNumPositionKeys;
@@ -232,10 +216,6 @@ namespace graphics
                     boneAnimation.positions.push_back(key);
                 }
 
-                // ------------------------------------------
-                // Rotations
-                // ------------------------------------------
-
                 for (unsigned int i = 0;
                      i < channel->mNumRotationKeys;
                      ++i)
@@ -254,10 +234,6 @@ namespace graphics
 
                     boneAnimation.rotations.push_back(key);
                 }
-
-                // ------------------------------------------
-                // Scale
-                // ------------------------------------------
 
                 for (unsigned int i = 0;
                      i < channel->mNumScalingKeys;
@@ -284,55 +260,6 @@ namespace graphics
             animations.push_back(
                 std::move(animation));
         }
-
-        // --------------------------------------------------
-        // Debug output
-        // --------------------------------------------------
-
-        std::cout << "\n========== ANIMATIONS ==========\n";
-
-        for (const auto &animation : animations)
-        {
-
-            std::cout
-                << "Animation: "
-                << animation.name
-                << "\n";
-
-            std::cout
-                << "  Duration: "
-                << animation.duration
-                << "\n";
-
-            std::cout
-                << "  Ticks/sec: "
-                << animation.ticksPerSecond
-                << "\n";
-
-            std::cout
-                << "  Channels: "
-                << animation.channels.size()
-                << "\n";
-
-            for (const auto &channel :
-                 animation.channels)
-            {
-
-                std::cout
-                    << "    Bone: "
-                    << channel.boneName
-                    << " | P:"
-                    << channel.positions.size()
-                    << " R:"
-                    << channel.rotations.size()
-                    << " S:"
-                    << channel.scales.size()
-                    << "\n";
-            }
-        }
-
-        std::cout
-            << "================================\n";
 
         return true;
     }
