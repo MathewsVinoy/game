@@ -11,10 +11,10 @@ public:
   struct KeyMappings
   {
 
-    int characterMoveLeft = GLFW_KEY_A;
-    int characterMoveRight = GLFW_KEY_D;
-    int characterMoveForward = GLFW_KEY_W;
-    int characterMoveBackward = GLFW_KEY_S;
+    int playerMoveLeft = GLFW_KEY_A;
+    int playerMoveRight = GLFW_KEY_D;
+    int playerMoveForward = GLFW_KEY_W;
+    int playerMoveBackward = GLFW_KEY_S;
 
     int lshift = GLFW_KEY_LEFT_SHIFT;
 
