@@ -7,18 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-    main/*.cpp
-    main/*.hpp
-    core/*.cpp
-    core/*.hpp
-    graphics/*.hpp
-    graphics/*.cpp
-    inputs/*.hpp
-    inputs/*.h
-    inputs/*.cpp
-    player/*.cpp
-    player/*.hpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
+list(FILTER SOURCES EXCLUDE REGEX ".*checkmate/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*/build/.*")
 
 add_executable(OpenGame ${SOURCES})
 
