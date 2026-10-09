@@ -1,6 +1,6 @@
 #pragma once
 
-#include "player/character.hpp"
+#include "player/player.hpp"
 
 #include <chrono>
 
@@ -22,7 +22,7 @@ namespace opengame
         void shutdown();
 
     private:
-        Character character;
+        Player player;
         std::chrono::high_resolution_clock::time_point currentTime{};
     };
 }
