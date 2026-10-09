@@ -57,17 +57,7 @@ namespace graphics
     glm::vec3 color{};
     TransformComponent transform{};
 
-    glm::vec3 getPosition() const { return transform.translation; }
-    glm::vec3 getScale() const { return transform.scale; }
-    glm::vec3 getRotation() const { return transform.rotation; }
-    bool isActive() const { return transform.activeState; }
-
-    void setPosition(const glm::vec3 &pos) { transform.translation = pos; }
-    void setScale(const glm::vec3 &scale) { transform.scale = scale; }
-    void setRotation(const glm::vec3 &rotation) { transform.rotation = rotation; }
-    void setActive(bool active) { transform.activeState = active; }
-
-    std::shared_ptr<ModelBuffer> modelBuffer{};
+       std::shared_ptr<ModelBuffer> modelBuffer{};
     std::shared_ptr<AnimatedModel> animatedModel{};
     std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
