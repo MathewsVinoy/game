@@ -10,13 +10,13 @@ namespace opengame
 
     void Game::initialize(graphics::Application &app)
     {
-        character.loadCharacterModel(app);
+        player.loadPlayerModel(app);
         currentTime = std::chrono::high_resolution_clock::now();
     }
 
     void Game::update(float deltaTime)
     {
-        character.move(deltaTime);
+        player.move(deltaTime);
     }
 
     void Game::shutdown()
