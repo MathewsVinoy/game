@@ -32,10 +32,7 @@ namespace graphics
 
     void setUpdateCallback(UpdateCallback callback);
     void run();
-    GameObject::id_t renderGameObjects(std::string modelPath,
-                                       glm::vec3 translation = {0.f, 0.f, 0.f},
-                                       glm::vec3 scale = {1.f, 1.f, 1.f},
-                                       glm::vec3 rotation = {0.f, 0.f, 0.f});
+    GameObject::id_t renderGameObjects(TransformComponent object);
 
     Window &getWindow();
     GameObject::Map &getGameObjects();
