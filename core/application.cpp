@@ -243,22 +243,12 @@ namespace graphics
     }
   }
 
-  GameObject::id_t Application::renderGameObjects(std::string modelPath,
-                                                  glm::vec3 translation,
-                                                  glm::vec3 scale,
-                                                  glm::vec3 rotation)
+  GameObject::id_t Application::renderGameObjects(TransformComponent object)
   {
-    animatedCharacter = std::make_shared<AnimatedModel>(
-        engineDevice,
-        "assets/models/char.fbx");
+    animatedCharacter = std::make_shared<AnimatedModel>(engineDevice, "assets/models/char.fbx");
     auto character = GameObject::createGameObject();
     character.animatedModel = animatedCharacter;
-    character.transform.translation = {0.0f, 0.0f, 0.0f};
-    character.transform.scale = {
-        0.01f,
-        0.01f,
-        0.01f};
-    // character.transform.rotation = {glm::radians(180.f), 0.0f, 0.0f};
+    character.transform = object;
     gameObjects.emplace(
         character.getId(),
         std::move(character));
