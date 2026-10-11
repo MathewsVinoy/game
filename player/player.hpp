@@ -19,7 +19,6 @@ namespace opengame
         graphics::TransformComponent getObject();
         void move(float dt);
         void loadPlayerModel(graphics::Application &app);
-        void resolveGroundCollision();
         void updateCamera(float dt);
 
     private:
