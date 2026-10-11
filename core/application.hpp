@@ -36,6 +36,7 @@ namespace graphics
 
     Window &getWindow();
     GameObject::Map &getGameObjects();
+    EngineDevice &getEngineDevice() { return engineDevice; }
     Camera &getCamera();
 
     float getYaw() const { return yaw; }
