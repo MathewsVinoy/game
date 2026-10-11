@@ -1,6 +1,8 @@
 #pragma once
 
 #include "player/player.hpp"
+#include "graphics/core/devices.hpp"
+#include "object/object.hpp"
 
 #include <chrono>
 
