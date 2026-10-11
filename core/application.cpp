@@ -31,8 +31,6 @@ namespace graphics
                          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                          SwapChain::MAX_FRAMES_IN_FLIGHT)
                      .build();
-
-    loadGameObjects();
   }
 
   Application::~Application() {}
