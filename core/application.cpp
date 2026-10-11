@@ -187,60 +187,30 @@ namespace graphics
   void Application::loadGameObjects()
   {
     // Ground
-    std::vector<ModelBuffer::Vertex> gv(4);
 
-    const float S = 100000.f;
+    // std::vector<glm::vec3> position_buildings{
+    // {-15, 0, 10},
+    // {-5, 0, 10},
+    // {5, 0, 10},
+    // {15, 0, 10},
 
-    glm::vec3 gp[4] = {
-        {-S, 0.f, -S},
-        {-S, 0.f, S},
-        {S, 0.f, S},
-        {S, 0.f, -S}};
+    // South side
+    //  {-15, 0, -10},
+    //  {-5, 0, -10},
+    //  {5, 0, -10},
+    //  {15, 0, -10},
 
-    for (int i = 0; i < 4; i++)
-    {
-      gv[i].position = gp[i];
-    }
-
-    std::shared_ptr<ModelBuffer> model =
-        ModelBuffer::setbulder(
-            engineDevice,
-            gv,
-            {0, 1, 2, 0, 2, 3});
-
-    auto ground = GameObject::createGameObject();
-
-    ground.modelBuffer = model;
-    ground.color = glm::vec3(0.3f);
-
-    gameObjects.emplace(
-        ground.getId(),
-        std::move(ground));
-
-    std::vector<glm::vec3> position_buildings{
-        {-15, 0, 10},
-        {-5, 0, 10},
-        {5, 0, 10},
-        {15, 0, 10},
-
-        // South side
-        {-15, 0, -10},
-        {-5, 0, -10},
-        {5, 0, -10},
-        {15, 0, -10},
-
-    };
-    model = ModelBuffer::createModelFromFile(engineDevice, "assets/models/cube.obj");
-    for (int i = 0; i < position_buildings.size(); i++)
-    {
-      auto building = GameObject::createGameObject();
-      building.modelBuffer = model;
-      building.transform.translation = position_buildings[i];
-      building.transform.scale = {1.f, 2.f, 1.f};
-      gameObjects.emplace(
-          building.getId(),
-          std::move(building));
-    }
+    // };
+    // model = ModelBuffer::createModelFromFile(engineDevice, "assets/models/cube.obj");
+    // for (int i = 0; i < position_buildings.size(); i++)
+    // {
+    // auto building = GameObject::createGameObject();
+    // building.modelBuffer = model;
+    // building.transform.translation = position_buildings[i];
+    // building.transform.scale = {1.f, 2.f, 1.f};
+    // gameObjects.emplace(
+    // building.getId(),
+    // std::move(building));}
   }
 
   GameObject::id_t Application::renderGameObjects(TransformComponent object)
