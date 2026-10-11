@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#include "world/ground.h"
+
 #include <chrono>
 
 namespace opengame
@@ -10,6 +12,7 @@ namespace opengame
 
     void Game::initialize(graphics::Application &app)
     {
+        ground(app);
         player.loadPlayerModel(app);
         currentTime = std::chrono::high_resolution_clock::now();
     }
