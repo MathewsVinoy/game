@@ -2,6 +2,7 @@
 
 #include "core/application.hpp"
 #include "inputs/mouse_controller.hpp"
+#include "physcis/collision.hpp"
 
 #include <cmath>
 #include <limits>
@@ -104,7 +105,8 @@ namespace opengame
 
         object.translation.y += verticalVelocity * dt;
 
-        resolveGroundCollision();
+        physics::Collision collision;
+        collision.resolveGroundCollision(object, verticalVelocity);
 
         if (!isGrounded)
         {
@@ -141,28 +143,6 @@ namespace opengame
         it->second.transform.scale = object.scale;
 
         updateCamera(dt);
-    }
-
-    void Player::resolveGroundCollision()
-    {
-        glm::vec3 pos = object.translation;
-
-        const float halfHeight = object.scale.y / 2.0f;
-        const float playerBottom = pos.y - halfHeight;
-
-        if (verticalVelocity <= 0.0f && playerBottom <= GROUND_LEVEL)
-        {
-            pos.y = GROUND_LEVEL + halfHeight;
-
-            object.translation = pos;
-            verticalVelocity = 0.0f;
-
-            isGrounded = true;
-
-            return;
-        }
-
-        isGrounded = false;
     }
 
     void Player::updateCamera(float dt)
