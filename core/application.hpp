@@ -42,8 +42,6 @@ namespace graphics
     float getYaw() const { return yaw; }
 
   private:
-    void loadGameObjects();
-
     float yaw = 0.f;
 
     Window window{WIDTH, HEIGHT, "Engine"};
