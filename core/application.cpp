@@ -95,11 +95,6 @@ namespace graphics
 
     RenderSystem renderSystem{engineDevice, renderer.getSwapChainRenderPass(),
                               globalSetLayout->getDescriptorSetLayout()};
-    // camera.setViewTarget(
-    // glm::vec3{0.0f, 1.5f, 8.0f}, // camera position
-    // glm::vec3{0.0f, 0.5f, 0.0f}, // target/player position
-    // glm::vec3{0.0f, 1.0f, 0.0f}  // up direction
-    // );
 
     glfwSetInputMode(window.getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -159,7 +154,7 @@ namespace graphics
         ubo.projection = camera.getProjection();
         ubo.view = camera.getView();
         ubo.inverseView = camera.getInverseView();
-        // pointLightSystem.update(frameInfo, ubo);
+
         const glm::vec3 sunlightDirection =
             glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
         ubo.sunlight.direction = glm::vec4(sunlightDirection, 0.0f);
@@ -172,43 +167,13 @@ namespace graphics
         // render
         renderer.beginSwapChainRenderPass(commandBuffer);
         renderSystem.renderGameObjects(frameInfo);
-        // ground.render(frameInfo);
-        // pointLightSystem.render(frameInfo);
+
         renderer.endSwapChainRenderPass(commandBuffer);
         renderer.endFrame();
       }
     }
 
     vkDeviceWaitIdle(engineDevice.device());
-  }
-
-  void Application::loadGameObjects()
-  {
-    // Ground
-
-    // std::vector<glm::vec3> position_buildings{
-    // {-15, 0, 10},
-    // {-5, 0, 10},
-    // {5, 0, 10},
-    // {15, 0, 10},
-
-    // South side
-    //  {-15, 0, -10},
-    //  {-5, 0, -10},
-    //  {5, 0, -10},
-    //  {15, 0, -10},
-
-    // };
-    // model = ModelBuffer::createModelFromFile(engineDevice, "assets/models/cube.obj");
-    // for (int i = 0; i < position_buildings.size(); i++)
-    // {
-    // auto building = GameObject::createGameObject();
-    // building.modelBuffer = model;
-    // building.transform.translation = position_buildings[i];
-    // building.transform.scale = {1.f, 2.f, 1.f};
-    // gameObjects.emplace(
-    // building.getId(),
-    // std::move(building));}
   }
 
   GameObject::id_t Application::renderGameObjects(TransformComponent object)
