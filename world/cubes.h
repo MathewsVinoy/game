@@ -14,3 +14,16 @@ void addCube(graphics::EngineDevice &device, glm::vec3 pos, graphics::GameObject
         building.getId(),
         std::move(building));
 }
+
+// std::vector<glm::vec3> position_buildings{
+// {-15, 0, 10},
+// {-5, 0, 10},
+// {5, 0, 10},
+// {15, 0, 10},
+//    //South side
+//
+// {-15, 0, -10},
+// {-5, 0, -10},
+// {5, 0, -10},
+// {15, 0, -10},
+// };
