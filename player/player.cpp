@@ -2,7 +2,6 @@
 
 #include "core/application.hpp"
 #include "inputs/mouse_controller.hpp"
-#include "physcis/collision.hpp"
 
 #include <cmath>
 #include <limits>
@@ -105,8 +104,7 @@ namespace opengame
 
         object.translation.y += verticalVelocity * dt;
 
-        physics::Collision collision;
-        collision.resolveGroundCollision(object, verticalVelocity);
+        isGrounded = collision.resolveGroundCollision(object, verticalVelocity);
 
         if (!isGrounded)
         {
