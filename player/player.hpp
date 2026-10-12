@@ -19,9 +19,10 @@ namespace opengame
         graphics::TransformComponent getObject();
         void move(float dt);
         void loadPlayerModel(graphics::Application &app);
-        void updateCamera(float dt);
 
     private:
+        void updateCamera(float dt);
+
         graphics::TransformComponent object;
         KeyboardMovementController controller;
         KeyboardMovementController::KeyMappings keyMappings;
