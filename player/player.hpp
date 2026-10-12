@@ -2,6 +2,7 @@
 
 #include "inputs/keyboard_controller.h"
 #include "object/object.hpp"
+#include "physcis/collision.hpp"
 
 namespace graphics
 {
@@ -28,6 +29,7 @@ namespace opengame
         KeyboardMovementController::KeyMappings keyMappings;
         graphics::Application *application{nullptr};
         graphics::GameObject::id_t renderObjectId{0};
+        physics::Collision collision;
 
         float moveSpeed = 5.0f;
         float sprintSpeed = 10.0f;
