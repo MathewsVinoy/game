@@ -102,7 +102,6 @@ namespace opengame
             object.rotation = {0.0f, movementYaw, 0.0f};
             isMoving = true;
         }
-        object.aabb = collision.createAABB(object.translation, object.scale);
 
         object.translation.y += verticalVelocity * dt;
 
@@ -136,14 +135,14 @@ namespace opengame
             }
         }
 
+        collision.checkCollisionAABB(application->getGameObjects(), it->first, object);
+
         it->second.transform.translation = object.translation;
 
         it->second.transform.rotation = object.rotation;
 
         it->second.transform.scale = object.scale;
         it->second.transform.aabb = object.aabb;
-
-        collision.checkCollisionAABB(application->getGameObjects(), it->first, it->second);
 
         updateCamera(dt);
     }
