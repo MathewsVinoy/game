@@ -2,10 +2,11 @@
 
 #include "graphics/render/model_buffers.hpp"
 #include "graphics/animation/animated_model.hpp"
+#include "physcis/aabb.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-
+#include <string>
 #include <memory>
 #include <unordered_map>
 
@@ -14,14 +15,13 @@ namespace graphics
 
   struct TransformComponent
   {
+    std::string name = "GameObject";
     glm::vec3 translation{};
     glm::vec3 scale{1.f, 1.f, 1.f};
     glm::vec3 rotation{};
+    physics::AABB aabb = physics::AABB{glm::vec3(0.f), glm::vec3(0.f)};
     bool activeState{true};
 
-    // Matrix corrsponds to Translate * Ry * Rx * Rz * Scale
-    // Rotations correspond to Tait-bryan angles of Y(1), X(2), Z(3)
-    // https://en.wikipedia.org/wiki/Euler_angles#Rotation_matrix
     glm::mat4 mat4();
 
     glm::mat3 normalMatrix();
@@ -57,7 +57,7 @@ namespace graphics
     glm::vec3 color{};
     TransformComponent transform{};
 
-       std::shared_ptr<ModelBuffer> modelBuffer{};
+    std::shared_ptr<ModelBuffer> modelBuffer{};
     std::shared_ptr<AnimatedModel> animatedModel{};
     std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
