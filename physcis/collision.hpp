@@ -12,10 +12,13 @@ namespace physics
         bool resolveGroundCollision(graphics::TransformComponent &object, float &verticalVelocity);
 
         AABB createAABB(glm::vec3 translation, glm::vec3 scale);
-        void checkCollisionAABB(const graphics::GameObject::Map &gameObjects, graphics::GameObject::id_t playerId, graphics::GameObject &player);
+        void checkCollisionAABB(const graphics::GameObject::Map &gameObjects,
+                                graphics::GameObject::id_t playerId,
+                                graphics::TransformComponent &player);
 
     private:
         bool checkAABB(const AABB &a, const AABB &b);
+        glm::vec3 calculateOverlap(const AABB &a, const AABB &b);
 
         const float GROUND_LEVEL = 0.0f;
     };
