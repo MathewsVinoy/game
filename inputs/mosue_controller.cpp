@@ -27,7 +27,6 @@ namespace graphics
 
             firstMouse = false;
 
-            // Don't create a large movement on the first frame.
             xOffset = 0.0;
             yOffset = 0.0;
 
@@ -47,7 +46,6 @@ namespace graphics
             static_cast<float>(xOffset),
             static_cast<float>(yOffset)};
 
-        // Consume the mouse movement.
         xOffset = 0.0;
         yOffset = 0.0;
 
