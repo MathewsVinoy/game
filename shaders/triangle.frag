@@ -1,3 +1,4 @@
+
 #version 450
 
 layout(location = 0) in vec3 fragColor;
@@ -7,8 +8,8 @@ layout(location = 2) in vec3 fragNormalWorld;
 layout(location = 0) out vec4 outColor;
 
 struct DirectionalLight {
-    vec3 direction; // Direction of the light (e.g., sunlight)
-    vec4 color;     // xyz = color, w = intensity
+    vec3 direction;
+    vec4 color;
 };
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
@@ -16,8 +17,8 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 view;
     mat4 invView;
 
-    vec4 ambientLightColor; // xyz = color, w = intensity
-    DirectionalLight sunlight; // Sunlight (directional light)
+    vec4 ambientLightColor;
+    DirectionalLight sunlight;
     int numLights;
 } ubo;
 
@@ -27,29 +28,48 @@ layout(push_constant) uniform Push {
 } push;
 
 void main() {
-    vec3 diffuseLight = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-    vec3 specularLight = vec3(0.0);
+    vec3 normal = normalize(fragNormalWorld);
 
-    vec3 surfaceNormal = normalize(fragNormalWorld);
+    vec3 lightDirection =
+        normalize(-ubo.sunlight.direction);
+
     vec3 cameraPosWorld = ubo.invView[3].xyz;
-    vec3 viewDirection = normalize(cameraPosWorld - fragPosWorld);
+    vec3 viewDirection =
+        normalize(cameraPosWorld - fragPosWorld);
 
-    // Directional light (sunlight) calculations
-    vec3 lightDirection = normalize(-ubo.sunlight.direction); // Negative because light direction points toward the light
-    vec3 lightIntensity = ubo.sunlight.color.xyz * ubo.sunlight.color.w;
+    // Ambient lighting
+    vec3 ambient =
+        ubo.ambientLightColor.xyz *
+        ubo.ambientLightColor.w;
 
-    // Diffuse component
-    float cosAngIncidence = max(dot(surfaceNormal, lightDirection), 0.0);
-    diffuseLight += lightIntensity * cosAngIncidence;
+    // Diffuse lighting
+    vec3 lightColor =
+        ubo.sunlight.color.xyz *
+        ubo.sunlight.color.w;
 
-    // Specular component (Blinn-Phong)
-    vec3 halfAngle = normalize(lightDirection + viewDirection);
-    float blinnTerm = max(dot(surfaceNormal, halfAngle), 0.0);
-    blinnTerm = pow(blinnTerm, 64.0); // Shininess
-    specularLight += lightIntensity * blinnTerm;
+    float diffuseFactor =
+        max(dot(normal, lightDirection), 0.0);
 
-    vec3 diffuseColor = diffuseLight * fragColor;
-    vec3 finalColor = diffuseColor + specularLight;
+    vec3 diffuse = lightColor * diffuseFactor;
+
+    // Blinn-Phong specular lighting
+    vec3 halfDirection =
+        normalize(lightDirection + viewDirection);
+
+    float specularFactor = 0.0;
+
+    if (diffuseFactor > 0.0) {
+        specularFactor = pow(
+            max(dot(normal, halfDirection), 0.0),
+            32.0
+        );
+    }
+
+    // Keep highlights subtle
+    vec3 specular = lightColor * specularFactor * 0.15;
+
+    vec3 finalColor =
+        fragColor * (ambient + diffuse) + specular;
 
     outColor = vec4(finalColor, 1.0);
 }
