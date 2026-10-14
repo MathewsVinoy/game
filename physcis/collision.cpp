@@ -1,7 +1,5 @@
 #include "collision.hpp"
 
-#include <iostream>
-
 namespace physics
 {
     bool Collision::resolveGroundCollision(graphics::TransformComponent &object, float &verticalVelocity)
@@ -43,9 +41,6 @@ namespace physics
 
             if (!checkAABB(player.aabb, objAABB))
                 continue;
-
-            std::cout << "Collision detected between player and object with ID: "
-                      << entry.first << std::endl;
 
             glm::vec3 overlap = calculateOverlap(player.aabb, objAABB);
 
