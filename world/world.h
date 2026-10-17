@@ -2,15 +2,14 @@
 
 #include "cubes.h"
 #include "core/application.hpp"
+#include "buildings.h"
 
 void world(graphics::Application &app)
 {
     ground(app);
     road(app);
     sidewalk(app);
-    // addCube(app.getEngineDevice(), {10.f, 0.f, 10.f}, app.getGameObjects());
-    // addCube(app.getEngineDevice(), {15.f, 0.f, 10.f}, app.getGameObjects());
-    // addCube(app.getEngineDevice(), {-15.f, 0.f, 10.f}, app.getGameObjects());
-    // addCube(app.getEngineDevice(), {10.f, 0.f, 15.f}, app.getGameObjects());
-    // addCube(app.getEngineDevice(), {10.f, 0.f, -15.f}, app.getGameObjects());
+
+    addbuilding(app.getEngineDevice(), {20, 0, 20}, app.getGameObjects());
+    addbuilding(app.getEngineDevice(), {20, 0, -20}, app.getGameObjects());
 }
