@@ -19,10 +19,10 @@ namespace graphics
   };
 
   RenderSystem::RenderSystem(EngineDevice &engineDevice, VkRenderPass renderPass,
-                             VkDescriptorSetLayout globalSetLayout)
+                             VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout textureSetLayout)
       : engineDevice{engineDevice}
   {
-    createPipelineLayout(globalSetLayout);
+    createPipelineLayout(globalSetLayout, textureSetLayout);
     createPipeline(renderPass);
   }
 
@@ -31,7 +31,9 @@ namespace graphics
     vkDestroyPipelineLayout(engineDevice.device(), pipelineLayout, nullptr);
   }
 
-  void RenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+  void RenderSystem::createPipelineLayout(
+      VkDescriptorSetLayout globalSetLayout,
+      VkDescriptorSetLayout textureSetLayout)
   {
     VkPushConstantRange pushConstantRange{};
     pushConstantRange.stageFlags =
@@ -39,17 +41,24 @@ namespace graphics
     pushConstantRange.offset = 0;
     pushConstantRange.size = sizeof(SimplePushConstantData);
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts{
+        globalSetLayout,
+        textureSetLayout};
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount =
         static_cast<uint32_t>(descriptorSetLayouts.size());
     pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
     pipelineLayoutInfo.pushConstantRangeCount = 1;
     pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-    if (vkCreatePipelineLayout(engineDevice.device(), &pipelineLayoutInfo,
-                               nullptr, &pipelineLayout) != VK_SUCCESS)
+
+    if (vkCreatePipelineLayout(
+            engineDevice.device(),
+            &pipelineLayoutInfo,
+            nullptr,
+            &pipelineLayout) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create pipeline layout!");
     }
