@@ -7,6 +7,7 @@
 #include "graphics/render/camera.hpp"
 #include "graphics/render/renderer.hpp"
 #include "graphics/animation/animated_model.hpp"
+#include "graphics/loader/texture.hpp"
 
 #include <functional>
 #include <memory>
@@ -43,6 +44,7 @@ namespace graphics
 
   private:
     float yaw = 0.f;
+    VkDescriptorSet createTextureDescriptor(Texture &texture);
 
     Window window{WIDTH, HEIGHT, "Engine"};
     EngineDevice engineDevice{window};
@@ -50,6 +52,9 @@ namespace graphics
     Camera camera{};
 
     std::unique_ptr<DescriptorPool> globalPool{};
+    std::unique_ptr<DescriptorPool> texturePool;
+    std::unique_ptr<DescriptorSetLayout> textureSetLayout;
+
     GameObject::Map gameObjects;
     UpdateCallback updateCallback{};
     std::shared_ptr<AnimatedModel> animatedCharacter;
