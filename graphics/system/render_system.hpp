@@ -15,7 +15,7 @@ namespace graphics
   {
   public:
     RenderSystem(EngineDevice &engineDevice, VkRenderPass renderPass,
-                 VkDescriptorSetLayout globalSetLayout);
+                 VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout textureSetLayout);
     ~RenderSystem();
 
     RenderSystem(const RenderSystem &) = delete;
@@ -24,7 +24,7 @@ namespace graphics
     void renderGameObjects(FrameInfo &frameInfo);
 
   private:
-    void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
+    void createPipelineLayout(VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout textureSetLayout);
     void createPipeline(VkRenderPass renderPass);
 
     EngineDevice &engineDevice;
