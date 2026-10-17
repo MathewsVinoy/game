@@ -31,6 +31,13 @@ namespace graphics
                          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                          SwapChain::MAX_FRAMES_IN_FLIGHT)
                      .build();
+
+    texturePool = DescriptorPool::Builder(engineDevice)
+                      .setMaxSets(1000)
+                      .addPoolSize(
+                          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                          1000)
+                      .build();
   }
 
   Application::~Application() {}
@@ -93,8 +100,18 @@ namespace graphics
           .build(globalDescriptorSets[i]);
     }
 
-    RenderSystem renderSystem{engineDevice, renderer.getSwapChainRenderPass(),
-                              globalSetLayout->getDescriptorSetLayout()};
+    textureSetLayout = DescriptorSetLayout::Builder(engineDevice)
+                           .addBinding(
+                               0,
+                               VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                               VK_SHADER_STAGE_FRAGMENT_BIT)
+                           .build();
+
+    RenderSystem renderSystem{
+        engineDevice,
+        renderer.getSwapChainRenderPass(),
+        globalSetLayout->getDescriptorSetLayout(),
+        textureSetLayout->getDescriptorSetLayout()};
 
     glfwSetInputMode(window.getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -187,6 +204,21 @@ namespace graphics
         std::move(character));
 
     return character.getId();
+  }
+
+  VkDescriptorSet Application::createTextureDescriptor(Texture &texture)
+  {
+    VkDescriptorSet descriptorSet{};
+
+    auto imageInfo = texture.descriptorInfo();
+
+    DescriptorWriter(
+        *textureSetLayout,
+        *texturePool)
+        .writeImage(0, &imageInfo)
+        .build(descriptorSet);
+
+    return descriptorSet;
   }
 
   Window &Application::getWindow() { return window; }
