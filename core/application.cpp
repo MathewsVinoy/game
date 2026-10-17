@@ -17,6 +17,8 @@
 #include <chrono>
 #include <numeric>
 #include <stdexcept>
+#include <iostream>
+
 namespace graphics
 {
 
@@ -38,6 +40,12 @@ namespace graphics
                           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                           1000)
                       .build();
+    textureSetLayout = DescriptorSetLayout::Builder(engineDevice)
+                           .addBinding(
+                               0,
+                               VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                               VK_SHADER_STAGE_FRAGMENT_BIT)
+                           .build();
   }
 
   Application::~Application() {}
@@ -99,13 +107,6 @@ namespace graphics
           .writeBuffer(1, &boneBufferInfo)
           .build(globalDescriptorSets[i]);
     }
-
-    textureSetLayout = DescriptorSetLayout::Builder(engineDevice)
-                           .addBinding(
-                               0,
-                               VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                               VK_SHADER_STAGE_FRAGMENT_BIT)
-                           .build();
 
     RenderSystem renderSystem{
         engineDevice,
@@ -225,4 +226,37 @@ namespace graphics
 
   GameObject::Map &Application::getGameObjects() { return gameObjects; }
   Camera &Application::getCamera() { return camera; }
+
+  GameObject::id_t Application::loadStaticModel(
+      const std::string &filepath,
+      TransformComponent transform)
+  {
+    auto builder = ModelBuffer::Builder{};
+    builder.loadModel(filepath);
+
+    auto model = std::make_shared<ModelBuffer>(
+        engineDevice,
+        builder);
+
+    auto object = GameObject::createGameObject();
+    object.modelBuffer = model;
+    object.transform = std::move(transform);
+
+    if (!builder.diffuseTexturePath.empty())
+    {
+      // The model owns the Texture, so its image and sampler
+      // remain alive while the descriptor set is in use.
+      auto descriptorSet =
+          createTextureDescriptor(*model->getTexture());
+
+      model->setTextureDescriptorSet(descriptorSet);
+    }
+
+    const auto id = object.getId();
+    gameObjects.emplace(id, std::move(object));
+    std::cout << "\n\n\n\n\n\n\n\nOBJ file: " << filepath << '\n';
+    std::cout << "Diffuse texture: "
+              << builder.diffuseTexturePath << '\n\n\n\n\n\n\n\n\n\n';
+    return id;
+  }
 }
