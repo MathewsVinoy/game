@@ -39,6 +39,9 @@ namespace graphics
     GameObject::Map &getGameObjects();
     EngineDevice &getEngineDevice() { return engineDevice; }
     Camera &getCamera();
+    GameObject::id_t loadStaticModel(
+        const std::string &filepath,
+        TransformComponent transform = {});
 
     float getYaw() const { return yaw; }
 
