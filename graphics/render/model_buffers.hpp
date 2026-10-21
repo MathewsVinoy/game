@@ -3,6 +3,7 @@
 #include "graphics/core/devices.hpp"
 #include "buffer.hpp"
 #include "graphics/animation/skeleton.hpp"
+#include "graphics/loader/texture.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -10,6 +11,8 @@
 
 #include <vector>
 #include <memory>
+#include <string>
+#include <filesystem>
 
 namespace graphics
 {
@@ -41,6 +44,8 @@ namespace graphics
       std::vector<uint32_t> indices{};
       bool skinned = false;
 
+      std::string diffuseTexturePath;
+
       void loadModel(const std::string &filepath);
       void loadAnimatedModel(
           const std::string &filepath,
@@ -60,6 +65,28 @@ namespace graphics
     {
       return setbulder(device, std::move(vertices), std::move(indices));
     }
+    VkDescriptorImageInfo getTextureDescriptorInfo() const
+    {
+      if (diffuseTexture)
+      {
+        return diffuseTexture->descriptorInfo();
+      }
+
+      return {};
+    }
+    void setTextureDescriptorSet(VkDescriptorSet descriptorSet)
+    {
+      textureDescriptorSet = descriptorSet;
+    }
+
+    VkDescriptorSet getTextureDescriptorSet() const
+    {
+      return textureDescriptorSet;
+    }
+    Texture *getTexture() const
+    {
+      return diffuseTexture.get();
+    }
 
     bool isSkinned() const { return skinned; }
 
@@ -74,6 +101,9 @@ namespace graphics
 
     std::unique_ptr<EngineBuffer> vertexBuffer;
     uint32_t vertexCount;
+
+    std::unique_ptr<Texture> diffuseTexture;
+    VkDescriptorSet textureDescriptorSet = VK_NULL_HANDLE;
 
     bool isSkinnedBuffer = false;
     bool skinned = false;
