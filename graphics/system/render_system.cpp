@@ -105,11 +105,29 @@ namespace graphics
       if (obj.animatedModel)
       {
         obj.animatedModel->getModel()->bind(frameInfo.commandBuffer);
+
         obj.animatedModel->getModel()->draw(frameInfo.commandBuffer);
       }
       else
       {
         obj.modelBuffer->bind(frameInfo.commandBuffer);
+
+        VkDescriptorSet textureSet =
+            obj.modelBuffer->getTextureDescriptorSet();
+
+        if (textureSet != VK_NULL_HANDLE)
+        {
+          vkCmdBindDescriptorSets(
+              frameInfo.commandBuffer,
+              VK_PIPELINE_BIND_POINT_GRAPHICS,
+              pipelineLayout,
+              1, // Texture descriptor set
+              1, // Number of descriptor sets
+              &textureSet,
+              0,
+              nullptr);
+        }
+
         obj.modelBuffer->draw(frameInfo.commandBuffer);
       }
     }
