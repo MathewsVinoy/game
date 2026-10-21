@@ -10,6 +10,7 @@ layout(location = 5) in vec4 aWeights;
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragPosWorld;
 layout(location = 2) out vec3 fragNormalWorld;
+layout(location = 3) out vec2 fragUV;
 
 struct DirectionalLight {
     vec3 direction;
@@ -69,4 +70,5 @@ void main() {
     fragPosWorld = positionWorld.xyz;
     fragNormalWorld = normalize(mat3(push.normalMatrix) * localNormal);
     fragColor = color;
+    fragUV = uv;
 }

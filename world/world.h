@@ -10,6 +10,6 @@ void world(graphics::Application &app)
     road(app);
     sidewalk(app);
 
-    addbuilding(app.getEngineDevice(), {20, 0, 20}, app.getGameObjects());
-    addbuilding(app.getEngineDevice(), {20, 0, -20}, app.getGameObjects());
+    addbuilding(app, {20, 0, 20});
+    addbuilding(app, {20, 0, -20});
 }

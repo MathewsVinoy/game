@@ -4,8 +4,12 @@
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec3 fragPosWorld;
 layout(location = 2) in vec3 fragNormalWorld;
+layout(location = 3) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
+
+// Texture descriptor: set 1, binding 0
+layout(set = 1, binding = 0) uniform sampler2D diffuseTexture;
 
 struct DirectionalLight {
     vec3 direction;
@@ -25,6 +29,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 layout(push_constant) uniform Push {
     mat4 modelMatrix;
     mat4 normalMatrix;
+    int uSkinned;
 } push;
 
 void main() {
@@ -36,6 +41,12 @@ void main() {
     vec3 cameraPosWorld = ubo.invView[3].xyz;
     vec3 viewDirection =
         normalize(cameraPosWorld - fragPosWorld);
+
+    // Sample the model's texture.
+    vec4 texel = texture(diffuseTexture, fragUV);
+
+    // Combine the texture with the existing vertex color.
+    vec3 baseColor = texel.rgb * fragColor;
 
     // Ambient lighting
     vec3 ambient =
@@ -65,11 +76,10 @@ void main() {
         );
     }
 
-    // Keep highlights subtle
     vec3 specular = lightColor * specularFactor * 0.15;
 
     vec3 finalColor =
-        fragColor * (ambient + diffuse) + specular;
+        baseColor * (ambient + diffuse) + specular;
 
-    outColor = vec4(finalColor, 1.0);
+    outColor = vec4(finalColor, texel.a);
 }
