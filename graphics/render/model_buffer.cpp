@@ -64,6 +64,12 @@ namespace graphics
 
     createVertexBuffers(builder.vertices);
     createIndexBuffers(builder.indices);
+    if (!builder.diffuseTexturePath.empty())
+    {
+      diffuseTexture = std::make_unique<Texture>(
+          engineDevice,
+          builder.diffuseTexturePath);
+    }
   }
 
   ModelBuffer::~ModelBuffer() {}
@@ -218,6 +224,21 @@ namespace graphics
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
     {
       throw std::runtime_error(warn + err);
+    }
+    diffuseTexturePath.clear();
+
+    if (!materials.empty())
+    {
+      const auto &material = materials[0];
+
+      if (!material.diffuse_texname.empty())
+      {
+        const auto modelDir =
+            std::filesystem::path(filepath).parent_path();
+
+        diffuseTexturePath =
+            (modelDir / material.diffuse_texname).lexically_normal().string();
+      }
     }
 
     vertices.clear();
