@@ -241,6 +241,9 @@ namespace graphics
     auto object = GameObject::createGameObject();
     object.modelBuffer = model;
     object.transform = std::move(transform);
+    std::cout << "Loading model: " << filepath << '\n';
+    std::cout << "Texture path: "
+              << builder.diffuseTexturePath << '\n';
 
     if (!builder.diffuseTexturePath.empty())
     {
@@ -254,9 +257,9 @@ namespace graphics
 
     const auto id = object.getId();
     gameObjects.emplace(id, std::move(object));
-    std::cout << "\n\n\n\n\n\n\n\nOBJ file: " << filepath << '\n';
-    std::cout << "Diffuse texture: "
-              << builder.diffuseTexturePath << '\n\n\n\n\n\n\n\n\n\n';
+    std::cout << "Assigned texture descriptor to: "
+              << filepath << '\n';
+
     return id;
   }
 }
