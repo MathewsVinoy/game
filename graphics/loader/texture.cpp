@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <array>
 #include <limits>
+#include <iostream>
 
 namespace graphics
 {
@@ -16,6 +17,20 @@ namespace graphics
     {
 
         ImageData data = loadImage(filepath);
+        std::cout << "Loading texture: " << filepath << '\n';
+        std::cout << "Image dimensions: "
+                  << data.width << " x " << data.height << '\n';
+        std::cout << "Pixel data valid: "
+                  << (data.pixels != nullptr) << '\n';
+
+        if (data.pixels != nullptr)
+        {
+            std::cout << "First pixel RGBA: "
+                      << static_cast<int>(data.pixels[0]) << ", "
+                      << static_cast<int>(data.pixels[1]) << ", "
+                      << static_cast<int>(data.pixels[2]) << ", "
+                      << static_cast<int>(data.pixels[3]) << '\n';
+        }
 
         width = static_cast<uint32_t>(data.width);
         height = static_cast<uint32_t>(data.height);
