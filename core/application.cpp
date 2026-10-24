@@ -134,9 +134,13 @@ namespace graphics
       {
         updateCallback(frameTime);
       }
-      if (animatedCharacter)
+
+      for (auto &[id, gameObject] : gameObjects)
       {
-        animatedCharacter->update(frameTime);
+        if (gameObject.animatedModel)
+        {
+          gameObject.animatedModel->update(frameTime);
+        }
       }
 
       glm::vec3 focusPoint{0.f};
@@ -162,10 +166,22 @@ namespace graphics
                             globalDescriptorSets[frameIndex],
                             gameObjects};
 
-        if (!boneBuffers.empty() && animatedCharacter)
+        if (!boneBuffers.empty())
         {
-          boneBuffers[frameIndex]->update(
-              animatedCharacter->getAnimator()->getBoneMatrices());
+          for (auto &[id, gameObject] : gameObjects)
+          {
+            if (gameObject.animatedModel)
+            {
+              auto *animator = gameObject.animatedModel->getAnimator();
+
+              if (animator)
+              {
+                boneBuffers[frameIndex]->update(
+                    animator->getBoneMatrices());
+                break;
+              }
+            }
+          }
         }
 
         GlobalUbo ubo{};
@@ -192,19 +208,6 @@ namespace graphics
     }
 
     vkDeviceWaitIdle(engineDevice.device());
-  }
-
-  GameObject::id_t Application::renderGameObjects(TransformComponent object)
-  {
-    animatedCharacter = std::make_shared<AnimatedModel>(engineDevice, "assets/models/char.fbx");
-    auto character = GameObject::createGameObject();
-    character.animatedModel = animatedCharacter;
-    character.transform = object;
-    gameObjects.emplace(
-        character.getId(),
-        std::move(character));
-
-    return character.getId();
   }
 
   VkDescriptorSet Application::createTextureDescriptor(Texture &texture)
@@ -247,8 +250,7 @@ namespace graphics
 
     if (!builder.diffuseTexturePath.empty())
     {
-      // The model owns the Texture, so its image and sampler
-      // remain alive while the descriptor set is in use.
+
       auto descriptorSet =
           createTextureDescriptor(*model->getTexture());
 
@@ -262,4 +264,22 @@ namespace graphics
 
     return id;
   }
+
+  GameObject::id_t Application::loadAnimatedModel(
+      const std::string &filepath,
+      TransformComponent transform)
+  {
+    auto animatedModel =
+        std::make_shared<AnimatedModel>(engineDevice, filepath);
+
+    auto object = GameObject::createGameObject();
+    object.animatedModel = animatedModel;
+    object.transform = std::move(transform);
+
+    const auto id = object.getId();
+    gameObjects.emplace(id, std::move(object));
+
+    return id;
+  }
+
 }
