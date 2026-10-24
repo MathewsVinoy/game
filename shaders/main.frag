@@ -8,7 +8,7 @@ layout(location = 2) in vec3 fragNormalWorld;
 layout(location = 0) out vec4 outColor;
 
 struct DirectionalLight {
-    vec3 direction;
+    vec4 direction;
     vec4 color;
 };
 
@@ -31,7 +31,7 @@ void main() {
     vec3 normal = normalize(fragNormalWorld);
 
     vec3 lightDirection =
-        normalize(-ubo.sunlight.direction);
+        normalize(-ubo.sunlight.direction.xyz);
 
     vec3 cameraPosWorld = ubo.invView[3].xyz;
     vec3 viewDirection =
