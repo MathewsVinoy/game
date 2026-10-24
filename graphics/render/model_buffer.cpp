@@ -16,6 +16,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <iostream>
+#include <filesystem>
 
 namespace std
 {
@@ -221,15 +222,40 @@ namespace graphics
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
-    {
-      throw std::runtime_error(warn + err);
-    }
+    const std::filesystem::path modelPath(filepath);
+    const std::string materialDir =
+        modelPath.parent_path().string() + "/";
+
+    bool ret = tinyobj::LoadObj(
+        &attrib,
+        &shapes,
+        &materials,
+        &warn,
+        &err,
+        filepath.c_str(),
+        materialDir.c_str());
+
+    std::cout << "OBJ load success: " << ret << '\n';
+    std::cout << "TinyObj warning: " << warn << '\n';
+    std::cout << "TinyObj error: " << err << '\n';
+    std::cout << "Loaded materials: " << materials.size() << '\n';
+
+    diffuseTexturePath.clear();
+
+    std::cout << "Number of materials: "
+              << materials.size() << '\n';
+
     diffuseTexturePath.clear();
 
     if (!materials.empty())
     {
       const auto &material = materials[0];
+
+      std::cout << "Material name: ["
+                << material.name << "]\n";
+
+      std::cout << "Raw diffuse texture name: ["
+                << material.diffuse_texname << "]\n";
 
       if (!material.diffuse_texname.empty())
       {
@@ -237,8 +263,25 @@ namespace graphics
             std::filesystem::path(filepath).parent_path();
 
         diffuseTexturePath =
-            (modelDir / material.diffuse_texname).lexically_normal().string();
+            (modelDir / material.diffuse_texname)
+                .lexically_normal()
+                .string();
+
+        std::cout << "Resolved texture path: ["
+                  << diffuseTexturePath << "]\n";
+
+        std::cout << "Texture file exists: "
+                  << std::filesystem::exists(diffuseTexturePath)
+                  << '\n';
       }
+      else
+      {
+        std::cout << "This material has no diffuse texture.\n";
+      }
+    }
+    else
+    {
+      std::cout << "No materials were loaded from the model.\n";
     }
 
     vertices.clear();
