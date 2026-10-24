@@ -39,7 +39,12 @@ namespace graphics
     GameObject::Map &getGameObjects();
     EngineDevice &getEngineDevice() { return engineDevice; }
     Camera &getCamera();
+
     GameObject::id_t loadStaticModel(
+        const std::string &filepath,
+        TransformComponent transform = {});
+
+    GameObject::id_t loadAnimatedModel(
         const std::string &filepath,
         TransformComponent transform = {});
 
@@ -60,6 +65,5 @@ namespace graphics
 
     GameObject::Map gameObjects;
     UpdateCallback updateCallback{};
-    std::shared_ptr<AnimatedModel> animatedCharacter;
-  };
+    };
 }
