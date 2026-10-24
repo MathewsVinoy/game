@@ -12,7 +12,7 @@ layout(location = 0) out vec4 outColor;
 layout(set = 1, binding = 0) uniform sampler2D diffuseTexture;
 
 struct DirectionalLight {
-    vec3 direction;
+    vec4 direction;
     vec4 color;
 };
 
@@ -30,30 +30,37 @@ layout(push_constant) uniform Push {
     mat4 modelMatrix;
     mat4 normalMatrix;
     int uSkinned;
+    int hasTexture;
 } push;
+
 
 void main() {
     vec3 normal = normalize(fragNormalWorld);
 
     vec3 lightDirection =
-        normalize(-ubo.sunlight.direction);
+        normalize(-ubo.sunlight.direction.xyz);
 
     vec3 cameraPosWorld = ubo.invView[3].xyz;
     vec3 viewDirection =
         normalize(cameraPosWorld - fragPosWorld);
 
-    // Sample the model's texture.
-    vec4 texel = texture(diffuseTexture, fragUV);
+    // Sample the diffuse texture if one is bound;
+    // otherwise fall back to opaque white.
+    vec4 texel = (push.hasTexture != 0)
+        ? texture(diffuseTexture, fragUV)
+        : vec4(1.0);
 
-    // Combine the texture with the existing vertex color.
+    // Combine texture and vertex color.
     vec3 baseColor = texel.rgb * fragColor;
 
-    // Ambient lighting
+    // Ambient lighting with a small minimum contribution.
     vec3 ambient =
         ubo.ambientLightColor.xyz *
         ubo.ambientLightColor.w;
 
-    // Diffuse lighting
+    ambient = max(ambient, vec3(0.12));
+
+    // Directional diffuse lighting.
     vec3 lightColor =
         ubo.sunlight.color.xyz *
         ubo.sunlight.color.w;
@@ -63,7 +70,7 @@ void main() {
 
     vec3 diffuse = lightColor * diffuseFactor;
 
-    // Blinn-Phong specular lighting
+    // Blinn-Phong specular lighting.
     vec3 halfDirection =
         normalize(lightDirection + viewDirection);
 
