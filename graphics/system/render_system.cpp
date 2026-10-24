@@ -8,6 +8,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <iostream>
 
 namespace graphics
 {
@@ -16,6 +17,7 @@ namespace graphics
     glm::mat4 modelMatrix{1.f};
     glm::mat4 normalMatrix{1.f};
     int uSkinned{0};
+    int hasTexture{0};
   };
 
   RenderSystem::RenderSystem(EngineDevice &engineDevice, VkRenderPass renderPass,
@@ -82,9 +84,15 @@ namespace graphics
   {
     pipeline->bind(frameInfo.commandBuffer);
 
-    vkCmdBindDescriptorSets(frameInfo.commandBuffer,
-                            VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                            &frameInfo.globalDescriptorSet, 0, nullptr);
+    vkCmdBindDescriptorSets(
+        frameInfo.commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineLayout,
+        0, // Global descriptor set = set 0
+        1, // Number of descriptor sets
+        &frameInfo.globalDescriptorSet,
+        0,
+        nullptr);
 
     for (auto &kv : frameInfo.gameObjects)
     {
@@ -117,12 +125,19 @@ namespace graphics
 
         if (textureSet != VK_NULL_HANDLE)
         {
+          push.hasTexture = 1;
+
+          vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
+                             VK_SHADER_STAGE_VERTEX_BIT |
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                             0, sizeof(SimplePushConstantData), &push);
+
           vkCmdBindDescriptorSets(
               frameInfo.commandBuffer,
               VK_PIPELINE_BIND_POINT_GRAPHICS,
               pipelineLayout,
-              1, // Texture descriptor set
-              1, // Number of descriptor sets
+              1,
+              1,
               &textureSet,
               0,
               nullptr);
