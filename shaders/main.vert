@@ -12,7 +12,7 @@ layout(location = 1) out vec3 fragPosWorld;
 layout(location = 2) out vec3 fragNormalWorld;
 
 struct DirectionalLight {
-    vec3 direction;
+    vec4 direction;
     vec4 color;
 };
 
