@@ -31,7 +31,9 @@ namespace opengame
 
         if (object.activeState)
         {
-            renderObjectId = app.renderGameObjects(object);
+            renderObjectId = app.loadAnimatedModel(
+                "assets/models/char.fbx",
+                object);
         }
 
         object.translation.y = GROUND_LEVEL + (object.scale.y / 2.0f);
