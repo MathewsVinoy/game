@@ -18,6 +18,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <iostream>
+#include <unordered_map>
 
 namespace graphics
 {
@@ -46,6 +47,24 @@ namespace graphics
                                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                VK_SHADER_STAGE_FRAGMENT_BIT)
                            .build();
+
+    bonePool = DescriptorPool::Builder(engineDevice)
+                   .setMaxSets(1000)
+                   .addPoolSize(
+                       VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                       1000)
+                   .build();
+
+    boneSetLayout = DescriptorSetLayout::Builder(engineDevice)
+                        .addBinding(
+                            0,
+                            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                            VK_SHADER_STAGE_VERTEX_BIT)
+                        .build();
+
+    const unsigned char whitePixel[4] = {255, 255, 255, 255};
+    defaultTexture = std::make_unique<Texture>(engineDevice, 1, 1, whitePixel);
+    defaultTextureSet = createTextureDescriptor(*defaultTexture);
   }
 
   Application::~Application() {}
@@ -67,52 +86,94 @@ namespace graphics
       uboBuffers[i]->map();
     }
 
-    std::vector<std::unique_ptr<BoneBuffer>> boneBuffers(
-        SwapChain::MAX_FRAMES_IN_FLIGHT);
-
+    // Identity matrices used to initialize each bone buffer.
     std::vector<glm::mat4> initialBones(
         BoneBuffer::MAX_BONES,
         glm::mat4{1.0f});
 
-    for (int i = 0; i < boneBuffers.size(); i++)
+    // Each animated character owns one bone buffer per frame in flight.
+    std::unordered_map<
+        GameObject::id_t,
+        std::vector<std::unique_ptr<BoneBuffer>>>
+        characterBoneBuffers;
+
+    for (auto &[id, gameObject] : gameObjects)
     {
-      boneBuffers[i] =
-          std::make_unique<BoneBuffer>(
-              engineDevice,
-              initialBones);
+      if (!gameObject.animatedModel)
+        continue;
+
+      auto &buffers = characterBoneBuffers[id];
+      buffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+      gameObject.boneDescriptorSets.resize(
+          SwapChain::MAX_FRAMES_IN_FLIGHT,
+          VK_NULL_HANDLE);
+
+      auto *animator = gameObject.animatedModel->getAnimator();
+
+      for (int i = 0;
+           i < SwapChain::MAX_FRAMES_IN_FLIGHT;
+           ++i)
+      {
+        buffers[i] = std::make_unique<BoneBuffer>(
+            engineDevice,
+            initialBones);
+
+        if (animator)
+        {
+          buffers[i]->update(
+              animator->getBoneMatrices());
+        }
+
+        auto boneBufferInfo = buffers[i]->descriptorInfo();
+
+        DescriptorWriter(*boneSetLayout, *bonePool)
+            .writeBuffer(0, &boneBufferInfo)
+            .build(gameObject.boneDescriptorSets[i]);
+      }
     }
 
+    // Global descriptor set: camera and lighting only.
     auto globalSetLayout =
         DescriptorSetLayout::Builder(engineDevice)
             .addBinding(
                 0,
                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-            .addBinding(
-                1,
-                VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                VK_SHADER_STAGE_VERTEX_BIT)
+                VK_SHADER_STAGE_VERTEX_BIT |
+                    VK_SHADER_STAGE_FRAGMENT_BIT)
             .build();
 
     std::vector<VkDescriptorSet> globalDescriptorSets(
         SwapChain::MAX_FRAMES_IN_FLIGHT);
 
-    for (int i = 0; i < globalDescriptorSets.size(); i++)
+    for (int i = 0;
+         i < SwapChain::MAX_FRAMES_IN_FLIGHT;
+         ++i)
     {
       auto bufferInfo = uboBuffers[i]->descriptorInfo();
-      auto boneBufferInfo = boneBuffers[i]->descriptorInfo();
 
       DescriptorWriter(*globalSetLayout, *globalPool)
           .writeBuffer(0, &bufferInfo)
-          .writeBuffer(1, &boneBufferInfo)
           .build(globalDescriptorSets[i]);
     }
+
+    auto defaultBoneBuffer = std::make_unique<BoneBuffer>(
+        engineDevice,
+        initialBones);
+    VkDescriptorSet defaultBoneSet{};
+    auto defaultBoneBufferInfo = defaultBoneBuffer->descriptorInfo();
+    DescriptorWriter(*boneSetLayout, *bonePool)
+        .writeBuffer(0, &defaultBoneBufferInfo)
+        .build(defaultBoneSet);
 
     RenderSystem renderSystem{
         engineDevice,
         renderer.getSwapChainRenderPass(),
         globalSetLayout->getDescriptorSetLayout(),
-        textureSetLayout->getDescriptorSetLayout()};
+        boneSetLayout->getDescriptorSetLayout(),
+        textureSetLayout->getDescriptorSetLayout(),
+        defaultTextureSet,
+        defaultBoneSet};
 
     glfwSetInputMode(window.getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -165,22 +226,24 @@ namespace graphics
                             camera,
                             globalDescriptorSets[frameIndex],
                             gameObjects};
-
-        if (!boneBuffers.empty())
+        for (auto &[id, buffers] : characterBoneBuffers)
         {
-          for (auto &[id, gameObject] : gameObjects)
-          {
-            if (gameObject.animatedModel)
-            {
-              auto *animator = gameObject.animatedModel->getAnimator();
+          auto objectIt = gameObjects.find(id);
 
-              if (animator)
-              {
-                boneBuffers[frameIndex]->update(
-                    animator->getBoneMatrices());
-                break;
-              }
-            }
+          if (objectIt == gameObjects.end())
+            continue;
+
+          auto &gameObject = objectIt->second;
+
+          if (!gameObject.animatedModel)
+            continue;
+
+          auto *animator = gameObject.animatedModel->getAnimator();
+
+          if (animator && buffers[frameIndex])
+          {
+            buffers[frameIndex]->update(
+                animator->getBoneMatrices());
           }
         }
 
