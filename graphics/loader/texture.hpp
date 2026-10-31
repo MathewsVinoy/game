@@ -12,6 +12,7 @@ namespace graphics
     {
     public:
         Texture(EngineDevice &device, const std::string &filepath);
+        Texture(EngineDevice &device, uint32_t width, uint32_t height, const unsigned char *pixels);
         ~Texture();
 
         Texture(const Texture &) = delete;

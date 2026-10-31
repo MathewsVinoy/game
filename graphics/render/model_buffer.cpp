@@ -247,16 +247,8 @@ namespace graphics
 
     diffuseTexturePath.clear();
 
-    if (!materials.empty())
+    for (const auto &material : materials)
     {
-      const auto &material = materials[0];
-
-      std::cout << "Material name: ["
-                << material.name << "]\n";
-
-      std::cout << "Raw diffuse texture name: ["
-                << material.diffuse_texname << "]\n";
-
       if (!material.diffuse_texname.empty())
       {
         const auto modelDir =
@@ -267,21 +259,17 @@ namespace graphics
                 .lexically_normal()
                 .string();
 
-        std::cout << "Resolved texture path: ["
-                  << diffuseTexturePath << "]\n";
-
+        std::cout << "Material name: [" << material.name << "]\n";
+        std::cout << "Resolved texture path: [" << diffuseTexturePath << "]\n";
         std::cout << "Texture file exists: "
-                  << std::filesystem::exists(diffuseTexturePath)
-                  << '\n';
-      }
-      else
-      {
-        std::cout << "This material has no diffuse texture.\n";
+                  << std::filesystem::exists(diffuseTexturePath) << '\n';
+        break;
       }
     }
-    else
+
+    if (diffuseTexturePath.empty())
     {
-      std::cout << "No materials were loaded from the model.\n";
+      std::cout << "No diffuse texture found in materials.\n";
     }
 
     vertices.clear();
@@ -301,11 +289,18 @@ namespace graphics
               attrib.vertices[3 * index.vertex_index + 1],
               attrib.vertices[3 * index.vertex_index + 2],
           };
-          vertex.color = {
-              attrib.colors[3 * index.vertex_index + 0],
-              attrib.colors[3 * index.vertex_index + 1],
-              attrib.colors[3 * index.vertex_index + 2],
-          };
+          if (!attrib.colors.empty())
+          {
+            vertex.color = {
+                attrib.colors[3 * index.vertex_index + 0],
+                attrib.colors[3 * index.vertex_index + 1],
+                attrib.colors[3 * index.vertex_index + 2],
+            };
+          }
+          else
+          {
+            vertex.color = {1.0f, 1.0f, 1.0f};
+          }
         }
 
         if (index.normal_index >= 0)
@@ -321,7 +316,7 @@ namespace graphics
         {
           vertex.uv = {
               attrib.texcoords[2 * index.texcoord_index + 0],
-              attrib.texcoords[2 * index.texcoord_index + 1],
+              1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
           };
         }
 

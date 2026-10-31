@@ -20,11 +20,23 @@ namespace graphics
     int hasTexture{0};
   };
 
-  RenderSystem::RenderSystem(EngineDevice &engineDevice, VkRenderPass renderPass,
-                             VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout textureSetLayout)
-      : engineDevice{engineDevice}
+  RenderSystem::RenderSystem(
+      EngineDevice &engineDevice,
+      VkRenderPass renderPass,
+      VkDescriptorSetLayout globalSetLayout,
+      VkDescriptorSetLayout boneSetLayout,
+      VkDescriptorSetLayout textureSetLayout,
+      VkDescriptorSet defaultTextureSet,
+      VkDescriptorSet defaultBoneSet)
+      : engineDevice{engineDevice},
+        defaultTextureSet{defaultTextureSet},
+        defaultBoneSet{defaultBoneSet}
   {
-    createPipelineLayout(globalSetLayout, textureSetLayout);
+    createPipelineLayout(
+        globalSetLayout,
+        boneSetLayout,
+        textureSetLayout);
+
     createPipeline(renderPass);
   }
 
@@ -35,6 +47,7 @@ namespace graphics
 
   void RenderSystem::createPipelineLayout(
       VkDescriptorSetLayout globalSetLayout,
+      VkDescriptorSetLayout boneSetLayout,
       VkDescriptorSetLayout textureSetLayout)
   {
     VkPushConstantRange pushConstantRange{};
@@ -45,6 +58,7 @@ namespace graphics
 
     std::vector<VkDescriptorSetLayout> descriptorSetLayouts{
         globalSetLayout,
+        boneSetLayout,
         textureSetLayout};
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -84,42 +98,136 @@ namespace graphics
   {
     pipeline->bind(frameInfo.commandBuffer);
 
+    // Set 0: global camera and lighting data.
     vkCmdBindDescriptorSets(
         frameInfo.commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         pipelineLayout,
-        0, // Global descriptor set = set 0
-        1, // Number of descriptor sets
+        0,
+        1,
         &frameInfo.globalDescriptorSet,
         0,
         nullptr);
 
+    // Set 1: default identity bone buffer
+    if (defaultBoneSet != VK_NULL_HANDLE)
+    {
+      vkCmdBindDescriptorSets(
+          frameInfo.commandBuffer,
+          VK_PIPELINE_BIND_POINT_GRAPHICS,
+          pipelineLayout,
+          1,
+          1,
+          &defaultBoneSet,
+          0,
+          nullptr);
+    }
+
+    // Set 2: default fallback texture
+    if (defaultTextureSet != VK_NULL_HANDLE)
+    {
+      vkCmdBindDescriptorSets(
+          frameInfo.commandBuffer,
+          VK_PIPELINE_BIND_POINT_GRAPHICS,
+          pipelineLayout,
+          2,
+          1,
+          &defaultTextureSet,
+          0,
+          nullptr);
+    }
+
     for (auto &kv : frameInfo.gameObjects)
     {
       auto &obj = kv.second;
-      if (obj.modelBuffer == nullptr && obj.animatedModel == nullptr)
+
+      if (obj.modelBuffer == nullptr &&
+          obj.animatedModel == nullptr)
+      {
         continue;
+      }
 
       SimplePushConstantData push{};
       push.modelMatrix = obj.transform.mat4();
       push.normalMatrix = glm::mat4(
-          glm::transpose(glm::inverse(glm::mat3(obj.transform.mat4()))));
-      push.uSkinned = (obj.animatedModel != nullptr) ? 1 : 0;
+          glm::transpose(
+              glm::inverse(glm::mat3(obj.transform.mat4()))));
 
-      vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
-                         VK_SHADER_STAGE_VERTEX_BIT |
-                             VK_SHADER_STAGE_FRAGMENT_BIT,
-                         0, sizeof(SimplePushConstantData), &push);
+      push.uSkinned = (obj.animatedModel != nullptr) ? 1 : 0;
+      push.hasTexture = 0;
+
       if (obj.animatedModel)
       {
-        obj.animatedModel->getModel()->bind(frameInfo.commandBuffer);
+        // Set 1: this character's bone matrices.
+        const auto frameIndex =
+            static_cast<size_t>(frameInfo.frameIndex);
 
-        obj.animatedModel->getModel()->draw(frameInfo.commandBuffer);
+        if (frameIndex >= obj.boneDescriptorSets.size() ||
+            obj.boneDescriptorSets[frameIndex] == VK_NULL_HANDLE)
+        {
+          throw std::runtime_error(
+              "Animated object has no bone descriptor set");
+        }
+
+        VkDescriptorSet boneSet =
+            obj.boneDescriptorSets[frameIndex];
+
+        vkCmdBindDescriptorSets(
+            frameInfo.commandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelineLayout,
+            1,
+            1,
+            &boneSet,
+            0,
+            nullptr);
+
+        if (defaultTextureSet != VK_NULL_HANDLE)
+        {
+          vkCmdBindDescriptorSets(
+              frameInfo.commandBuffer,
+              VK_PIPELINE_BIND_POINT_GRAPHICS,
+              pipelineLayout,
+              2,
+              1,
+              &defaultTextureSet,
+              0,
+              nullptr);
+        }
+
+        obj.animatedModel->getModel()->bind(
+            frameInfo.commandBuffer);
+
+        vkCmdPushConstants(
+            frameInfo.commandBuffer,
+            pipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT |
+                VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(SimplePushConstantData),
+            &push);
+
+        obj.animatedModel->getModel()->draw(
+            frameInfo.commandBuffer);
       }
       else
       {
+        if (defaultBoneSet != VK_NULL_HANDLE)
+        {
+          vkCmdBindDescriptorSets(
+              frameInfo.commandBuffer,
+              VK_PIPELINE_BIND_POINT_GRAPHICS,
+              pipelineLayout,
+              1,
+              1,
+              &defaultBoneSet,
+              0,
+              nullptr);
+        }
+
         obj.modelBuffer->bind(frameInfo.commandBuffer);
 
+        // Set 2: static model texture.
         VkDescriptorSet textureSet =
             obj.modelBuffer->getTextureDescriptorSet();
 
@@ -127,21 +235,41 @@ namespace graphics
         {
           push.hasTexture = 1;
 
-          vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
-                             VK_SHADER_STAGE_VERTEX_BIT |
-                                 VK_SHADER_STAGE_FRAGMENT_BIT,
-                             0, sizeof(SimplePushConstantData), &push);
-
           vkCmdBindDescriptorSets(
               frameInfo.commandBuffer,
               VK_PIPELINE_BIND_POINT_GRAPHICS,
               pipelineLayout,
-              1,
+              2,
               1,
               &textureSet,
               0,
               nullptr);
         }
+        else
+        {
+          push.hasTexture = 0;
+          if (defaultTextureSet != VK_NULL_HANDLE)
+          {
+            vkCmdBindDescriptorSets(
+                frameInfo.commandBuffer,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                pipelineLayout,
+                2,
+                1,
+                &defaultTextureSet,
+                0,
+                nullptr);
+          }
+        }
+
+        vkCmdPushConstants(
+            frameInfo.commandBuffer,
+            pipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT |
+                VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(SimplePushConstantData),
+            &push);
 
         obj.modelBuffer->draw(frameInfo.commandBuffer);
       }

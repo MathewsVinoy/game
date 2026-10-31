@@ -14,8 +14,15 @@ namespace graphics
   class RenderSystem
   {
   public:
-    RenderSystem(EngineDevice &engineDevice, VkRenderPass renderPass,
-                 VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout textureSetLayout);
+    RenderSystem(
+        EngineDevice &engineDevice,
+        VkRenderPass renderPass,
+        VkDescriptorSetLayout globalSetLayout,
+        VkDescriptorSetLayout boneSetLayout,
+        VkDescriptorSetLayout textureSetLayout,
+        VkDescriptorSet defaultTextureSet = VK_NULL_HANDLE,
+        VkDescriptorSet defaultBoneSet = VK_NULL_HANDLE);
+
     ~RenderSystem();
 
     RenderSystem(const RenderSystem &) = delete;
@@ -24,12 +31,18 @@ namespace graphics
     void renderGameObjects(FrameInfo &frameInfo);
 
   private:
-    void createPipelineLayout(VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout textureSetLayout);
+    void createPipelineLayout(
+        VkDescriptorSetLayout globalSetLayout,
+        VkDescriptorSetLayout boneSetLayout,
+        VkDescriptorSetLayout textureSetLayout);
+
     void createPipeline(VkRenderPass renderPass);
 
     EngineDevice &engineDevice;
 
     std::unique_ptr<Pipeline> pipeline;
     VkPipelineLayout pipelineLayout;
+    VkDescriptorSet defaultTextureSet{VK_NULL_HANDLE};
+    VkDescriptorSet defaultBoneSet{VK_NULL_HANDLE};
   };
 } // namespace graphics
