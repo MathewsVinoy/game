@@ -60,10 +60,14 @@ namespace graphics
     Camera camera{};
 
     std::unique_ptr<DescriptorPool> globalPool{};
+    std::unique_ptr<DescriptorPool> bonePool{};
+    std::unique_ptr<DescriptorSetLayout> boneSetLayout{};
     std::unique_ptr<DescriptorPool> texturePool;
     std::unique_ptr<DescriptorSetLayout> textureSetLayout;
+    std::unique_ptr<Texture> defaultTexture;
+    VkDescriptorSet defaultTextureSet{VK_NULL_HANDLE};
 
     GameObject::Map gameObjects;
     UpdateCallback updateCallback{};
-    };
+  };
 }
