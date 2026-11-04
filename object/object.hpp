@@ -6,6 +6,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <vector>
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -42,7 +43,7 @@ namespace graphics
     {
       static id_t currentId = 0;
       return GameObject{currentId++};
-    }
+   }
 
     static GameObject makePointLight(float intensity = 10.f, float radius = 0.1f,
                                      glm::vec3 color = glm::vec3(1.f));
@@ -59,6 +60,7 @@ namespace graphics
 
     std::shared_ptr<ModelBuffer> modelBuffer{};
     std::shared_ptr<AnimatedModel> animatedModel{};
+    std::vector<VkDescriptorSet> boneDescriptorSets{};
     std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
   private:
