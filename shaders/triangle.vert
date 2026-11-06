@@ -26,14 +26,17 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     int numLights;
 } ubo;
 
-layout(set = 0, binding = 1, std430) readonly buffer BoneBuffer {
+layout(set = 1, binding = 0, std430) readonly buffer BoneBuffer {
     mat4 bones[];
 };
+
+
 
 layout(push_constant) uniform Push {
     mat4 modelMatrix;
     mat4 normalMatrix;
     int uSkinned;
+    int hasTexture;
 } push;
 
 void main() {
