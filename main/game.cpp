@@ -17,8 +17,9 @@ namespace opengame
 
         world(app);
         player.loadPlayerModel(app);
-        npc.addNPC(1, "Alice", graphics::TransformComponent{}, app, 5.f);
-        npc.addNPC(2, "Bob", graphics::TransformComponent{}, app, -5.f);
+        npc.initNpc(app);
+        npc.addNPC("Alice", graphics::TransformComponent{}, 5.f);
+        npc.addNPC("Bob", graphics::TransformComponent{}, -5.f);
         currentTime = std::chrono::high_resolution_clock::now();
     }
 
