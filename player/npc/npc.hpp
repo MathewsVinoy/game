@@ -5,6 +5,11 @@
 
 #include <string>
 
+namespace graphics
+{
+    class Application;
+}
+
 namespace opengame
 {
     struct NPC_Objectc
@@ -19,10 +24,13 @@ namespace opengame
         NPC();
         ~NPC();
 
-        void addNPC(std::string name, graphics::TransformComponent details, graphics::Application &app, float x);
+        void initNpc(graphics::Application &application);
+
+        void addNPC(std::string name, graphics::TransformComponent details, float x);
         void update(float deltaTime);
 
     private:
+        graphics::Application *app{nullptr};
         std::vector<NPC_Objectc> npc_objects;
     };
 
