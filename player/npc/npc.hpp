@@ -16,6 +16,11 @@ namespace opengame
     {
         graphics::GameObject::id_t id;
         std::string name;
+
+        float start_point;
+        float end_point;
+
+        float direction = 1.0f;
     };
 
     class NPC
