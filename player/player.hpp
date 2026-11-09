@@ -3,6 +3,7 @@
 #include "inputs/keyboard_controller.h"
 #include "object/object.hpp"
 #include "physcis/collision.hpp"
+#include "combat/combat_component.hpp"
 
 namespace graphics
 {
@@ -30,6 +31,7 @@ namespace opengame
         graphics::Application *application{nullptr};
         graphics::GameObject::id_t renderObjectId{0};
         physics::Collision collision;
+        CombatComponent combatComponent;
 
         float moveSpeed = 5.0f;
         float sprintSpeed = 10.0f;
