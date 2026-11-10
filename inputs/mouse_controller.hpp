@@ -10,6 +10,7 @@ namespace graphics
         static void update(GLFWwindow *window);
         static glm::vec2 getMouseOffset();
         static void setFirstMouse(bool first);
+        static bool leftMouseButtonPressed(GLFWwindow *window) { return glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS; };
 
     private:
         static double lastX, lastY;
