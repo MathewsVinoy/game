@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <limits>
+#include <iostream>
 
 namespace opengame
 {
@@ -103,6 +104,15 @@ namespace opengame
             float movementYaw = std::atan2(moveDir.x, moveDir.z);
             object.rotation = {0.0f, movementYaw, 0.0f};
             isMoving = true;
+        }
+        if (graphics::Mouse::leftMouseButtonPressed(application->getWindow().getGLFWwindow()))
+        {
+            combatComponent.updateState(CombatState::ATTACKING);
+            std::cout << "Attacking!" << std::endl;
+        }
+        else
+        {
+            combatComponent.updateState(CombatState::IDLE);
         }
 
         object.translation.y += verticalVelocity * dt;
