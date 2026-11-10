@@ -18,6 +18,8 @@ namespace opengame
         CombatComponent() = default;
         ~CombatComponent() = default;
 
+        void updateState(CombatState newState) { state = newState; }
+
     private:
         int health = 100;
         int attackDamage = 10;
