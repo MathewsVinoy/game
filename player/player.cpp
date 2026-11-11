@@ -65,7 +65,7 @@ namespace opengame
 
             isGrounded = false;
 
-            if (!animator->isPlaying("jump"))
+            if (!combatComponent.isAttacking() && !animator->isPlaying("jump"))
                 animator->play("jump");
         }
 
@@ -105,10 +105,24 @@ namespace opengame
             object.rotation = {0.0f, movementYaw, 0.0f};
             isMoving = true;
         }
+        std::string punchAnim = animator->hasAnimation("punching") ? "punching" : "Armature|punching";
+        if (!animator->hasAnimation(punchAnim))
+            punchAnim = "punch";
+
+        bool isAttacking = false;
         if (graphics::Mouse::leftMouseButtonPressed(application->getWindow().getGLFWwindow()))
         {
+            isAttacking = true;
             combatComponent.updateState(CombatState::ATTACKING);
-            std::cout << "Attacking!" << std::endl;
+
+            if (!animator->isPlaying(punchAnim))
+            {
+                animator->play(punchAnim, false);
+            }
+        }
+        else if (animator->isPlaying(punchAnim))
+        {
+            isAttacking = true;
         }
         else
         {
@@ -119,31 +133,34 @@ namespace opengame
 
         isGrounded = collision.resolveGroundCollision(object, verticalVelocity);
 
-        if (!isGrounded)
+        if (!isAttacking)
         {
-            if (!animator->isPlaying("jump"))
-                animator->play("jump");
-        }
-        else
-        {
-            if (isMoving)
+            if (!isGrounded)
             {
-                if (currentSpeed == sprintSpeed)
-                {
-                    if (!animator->isPlaying("run"))
-
-                        animator->play("run");
-                }
-                else
-                {
-                    if (!animator->isPlaying("walk"))
-                        animator->play("walk");
-                }
+                if (!animator->isPlaying("jump"))
+                    animator->play("jump");
             }
             else
             {
-                if (!animator->isPlaying("idle"))
-                    animator->play("idle");
+                if (isMoving)
+                {
+                    if (currentSpeed == sprintSpeed)
+                    {
+                        std::string runAnim = animator->hasAnimation("Armature|running") ? "Armature|running" : "run";
+                        if (!animator->isPlaying(runAnim))
+                            animator->play(runAnim);
+                    }
+                    else
+                    {
+                        if (!animator->isPlaying("walk"))
+                            animator->play("walk");
+                    }
+                }
+                else
+                {
+                    if (!animator->isPlaying("idle"))
+                        animator->play("idle");
+                }
             }
         }
 
