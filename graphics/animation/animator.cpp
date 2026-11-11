@@ -23,7 +23,8 @@ namespace graphics
     }
 
     void Animator::play(
-        const std::string &animationName)
+        const std::string &animationName,
+        bool loop)
     {
 
         for (auto &animation : *animations)
@@ -34,6 +35,8 @@ namespace graphics
 
                 currentAnimation = &animation;
                 currentTime = 0.0;
+                looping = loop;
+                finished = false;
 
                 std::cout
                     << "Playing animation: "
@@ -55,7 +58,33 @@ namespace graphics
     {
 
         return currentAnimation != nullptr &&
-               currentAnimation->name == animationName;
+               currentAnimation->name == animationName &&
+               !finished;
+    }
+
+    bool Animator::isAnimationFinished() const
+    {
+        return finished;
+    }
+
+    bool Animator::isLooping() const
+    {
+        return looping;
+    }
+
+    bool Animator::hasAnimation(
+        const std::string &animationName) const
+    {
+        if (!animations)
+            return false;
+
+        for (const auto &anim : *animations)
+        {
+            if (anim.name == animationName)
+                return true;
+        }
+
+        return false;
     }
 
     const BoneAnimation *Animator::findChannel(
@@ -309,10 +338,21 @@ namespace graphics
             deltaTime *
             currentAnimation->ticksPerSecond;
 
-        currentTime =
-            std::fmod(
-                currentTime,
-                currentAnimation->duration);
+        if (looping)
+        {
+            currentTime =
+                std::fmod(
+                    currentTime,
+                    currentAnimation->duration);
+        }
+        else
+        {
+            if (currentTime >= currentAnimation->duration)
+            {
+                currentTime = currentAnimation->duration;
+                finished = true;
+            }
+        }
 
         for (size_t i = 0;
              i < skeleton->getBones().size();
