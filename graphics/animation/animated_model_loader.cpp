@@ -261,6 +261,31 @@ namespace graphics
                 std::move(animation));
         }
 
+        std::cout << "\n========================================\n";
+        std::cout << "[AnimatedModelLoader] Loaded: " << filepath << "\n";
+        std::cout << "Available Animations (" << animations.size() << "):\n";
+        if (animations.empty())
+        {
+            std::cout << "  (No animations found)\n";
+        }
+        else
+        {
+            for (size_t i = 0; i < animations.size(); ++i)
+            {
+                double durationInSeconds = (animations[i].ticksPerSecond > 0.0)
+                    ? (animations[i].duration / animations[i].ticksPerSecond)
+                    : 0.0;
+
+                std::cout << "  [" << i << "] \"" << animations[i].name << "\""
+                          << " | Duration: " << animations[i].duration << " ticks"
+                          << " (" << durationInSeconds << "s)"
+                          << " @ " << animations[i].ticksPerSecond << " ticks/s"
+                          << " | Channels: " << animations[i].channels.size()
+                          << "\n";
+            }
+        }
+        std::cout << "========================================\n" << std::endl;
+
         return true;
     }
 }
