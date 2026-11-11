@@ -16,13 +16,16 @@ namespace graphics
             Skeleton *skeleton,
             std::vector<AnimationClip> *animations);
 
-        void play(const std::string &animationName);
+        void play(const std::string &animationName, bool loop = true);
 
         void update(float deltaTime);
 
         const std::vector<glm::mat4> &getBoneMatrices() const;
 
         bool isPlaying(const std::string &animationName) const;
+        bool isAnimationFinished() const;
+        bool isLooping() const;
+        bool hasAnimation(const std::string &animationName) const;
 
     private:
         Skeleton *skeleton;
@@ -31,6 +34,8 @@ namespace graphics
         AnimationClip *currentAnimation = nullptr;
 
         double currentTime = 0.0;
+        bool looping = true;
+        bool finished = false;
 
         std::vector<glm::mat4> boneMatrices;
 
