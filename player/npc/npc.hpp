@@ -3,8 +3,6 @@
 #include "object/object.hpp"
 #include "core/application.hpp"
 
-#include <string>
-
 namespace graphics
 {
     class Application;
@@ -16,27 +14,22 @@ namespace opengame
     {
         graphics::GameObject::id_t id;
         std::string name;
-
         float start_point;
         float end_point;
-
         float direction = 1.0f;
     };
 
     class NPC
     {
     public:
-        NPC();
+        NPC(graphics::Application &application, float x, NPC_Objectc object);
         ~NPC();
 
-        void initNpc(graphics::Application &application);
-
-        void addNPC(std::string name, graphics::TransformComponent details, float x);
-        void update(float deltaTime);
+        void simple_walk(float deltaTime);
 
     private:
         graphics::Application *app{nullptr};
-        std::vector<NPC_Objectc> npc_objects;
+        NPC_Objectc npc_object;
     };
 
 }
