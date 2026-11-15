@@ -2,8 +2,8 @@
 
 #include "player/player.hpp"
 #include "graphics/core/devices.hpp"
-#include "player/npc/npc.hpp"
 #include "object/object.hpp"
+#include "player/npc/npc_manager.hpp"
 
 #include <chrono>
 
@@ -26,7 +26,7 @@ namespace opengame
 
     private:
         Player player;
-        NPC npc;
+        NPC_Manager npcManager;
         std::chrono::high_resolution_clock::time_point currentTime{};
     };
 }
