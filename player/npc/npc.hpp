@@ -2,6 +2,7 @@
 
 #include "object/object.hpp"
 #include "core/application.hpp"
+#include "physcis/collision.hpp"
 
 namespace graphics
 {
@@ -13,7 +14,7 @@ namespace opengame
     struct NPC_Objectc
     {
         graphics::GameObject::id_t id;
-        std::string name;
+        std::string type;
         float start_point;
         float end_point;
         float direction = 1.0f;
@@ -24,12 +25,14 @@ namespace opengame
     public:
         NPC(graphics::Application &application, float x, NPC_Objectc object);
         ~NPC();
-
+        std::string getType() const { return npc_object.type; }
         void simple_walk(float deltaTime);
 
     private:
         graphics::Application *app{nullptr};
         NPC_Objectc npc_object;
+
+        physics::Collision collision;
     };
 
 }
