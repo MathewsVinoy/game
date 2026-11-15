@@ -17,16 +17,14 @@ namespace opengame
 
         world(app);
         player.loadPlayerModel(app);
-        npc.initNpc(app);
-        npc.addNPC("Alice", graphics::TransformComponent{}, 5.f);
-        npc.addNPC("Bob", graphics::TransformComponent{}, -5.f);
+        npcManager.init(app);
         currentTime = std::chrono::high_resolution_clock::now();
     }
 
     void Game::update(float deltaTime)
     {
         player.move(deltaTime);
-        npc.update(deltaTime);
+        npcManager.update(deltaTime);
     }
 
     void Game::shutdown()
