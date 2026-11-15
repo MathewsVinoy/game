@@ -2,22 +2,17 @@
 
 #include "npc.hpp"
 
-namespace graphics
-{
-    class Application;
-}
-
 namespace opengame
 {
 
     class NPC_Manager
     {
     public:
-        void init();
+        void init(graphics::Application &app);
         void update(float deltaTime);
 
     private:
-        graphics::Application *app{nullptr};
+        std::vector<NPC> npcs;
     };
 
 }
