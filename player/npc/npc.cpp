@@ -21,8 +21,6 @@ namespace opengame
 
     void NPC::simple_walk(float deltaTime)
     {
-        if (!app)
-            return;
 
         const float movementSpeed = 3.0f;
         const float animationSpeed = 0.3f;
