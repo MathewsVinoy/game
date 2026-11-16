@@ -23,47 +23,78 @@ namespace physics
         return aabb;
     }
 
+    AABB Collision::createAABB(const graphics::TransformComponent &transform)
+    {
+        glm::vec3 extents = transform.colliderExtents;
+        glm::vec3 offset = transform.colliderOffset;
+
+        if (extents == glm::vec3(0.0f))
+        {
+            if (transform.name == "Player" || transform.name == "NPC")
+            {
+                extents = glm::vec3(0.4f, 0.9f, 0.4f);
+                offset = glm::vec3(0.0f, 0.9f, 0.0f);
+            }
+            else
+            {
+                extents = transform.scale;
+            }
+        }
+
+        glm::vec3 center = transform.translation + offset;
+        AABB aabb;
+        aabb.min = center - extents;
+        aabb.max = center + extents;
+        return aabb;
+    }
+
     void Collision::checkCollisionAABB(const graphics::GameObject::Map &gameObjects,
                                        graphics::GameObject::id_t playerId,
                                        graphics::TransformComponent &player)
     {
 
-        player.aabb = createAABB(player.translation, player.scale);
+        player.aabb = createAABB(player);
 
         for (const auto &entry : gameObjects)
         {
-            if (entry.first == playerId || entry.second.transform.name != "Cube")
+            if (entry.first == playerId)
                 continue;
 
             const auto &objTransform = entry.second.transform;
 
-            const AABB objAABB = createAABB(objTransform.translation, objTransform.scale);
+            if (!objTransform.hasCollision && objTransform.name != "Cube" && objTransform.name != "NPC" && objTransform.name != "Player")
+                continue;
+
+            const AABB objAABB = createAABB(objTransform);
 
             if (!checkAABB(player.aabb, objAABB))
                 continue;
 
             glm::vec3 overlap = calculateOverlap(player.aabb, objAABB);
 
+            glm::vec3 playerCenter = (player.aabb.min + player.aabb.max) * 0.5f;
+            glm::vec3 objCenter = (objAABB.min + objAABB.max) * 0.5f;
+
             if (overlap.x < overlap.y && overlap.x < overlap.z)
             {
-                player.translation.x += (player.translation.x < objTransform.translation.x)
+                player.translation.x += (playerCenter.x < objCenter.x)
                                             ? -overlap.x
                                             : overlap.x;
             }
             else if (overlap.y < overlap.z)
             {
-                player.translation.y += (player.translation.y < objTransform.translation.y)
+                player.translation.y += (playerCenter.y < objCenter.y)
                                             ? -overlap.y
                                             : overlap.y;
             }
             else
             {
-                player.translation.z += (player.translation.z < objTransform.translation.z)
+                player.translation.z += (playerCenter.z < objCenter.z)
                                             ? -overlap.z
                                             : overlap.z;
             }
 
-            player.aabb = createAABB(player.translation, player.scale);
+            player.aabb = createAABB(player);
         }
     }
 
