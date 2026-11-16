@@ -11,7 +11,10 @@ void addCube(graphics::EngineDevice &device, glm::vec3 pos, graphics::GameObject
     building.transform.name = "Cube";
     building.transform.translation = pos;
     building.transform.scale = {1.f, 1.f, 1.f};
-    building.transform.aabb = physics::Collision().createAABB(pos, {1.f, 1.f, 1.f});
+    building.transform.hasCollision = true;
+    building.transform.colliderExtents = {1.f, 1.f, 1.f};
+    building.transform.colliderOffset = {0.f, 0.f, 0.f};
+    building.transform.aabb = physics::Collision().createAABB(building.transform);
     gameObjects.emplace(
         building.getId(),
         std::move(building));
