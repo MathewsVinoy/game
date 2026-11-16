@@ -12,6 +12,7 @@ namespace physics
         bool resolveGroundCollision(graphics::TransformComponent &object, float &verticalVelocity);
 
         AABB createAABB(glm::vec3 translation, glm::vec3 scale);
+        AABB createAABB(const graphics::TransformComponent &transform);
         void checkCollisionAABB(const graphics::GameObject::Map &gameObjects,
                                 graphics::GameObject::id_t playerId,
                                 graphics::TransformComponent &player);
