@@ -4,6 +4,7 @@
 #include "object/object.hpp"
 #include "physcis/collision.hpp"
 #include "combat/combat_component.hpp"
+#include "combat/hitbox.hpp"
 
 namespace graphics
 {
@@ -32,6 +33,7 @@ namespace opengame
         graphics::GameObject::id_t renderObjectId{0};
         physics::Collision collision;
         CombatComponent combatComponent;
+        Hitbox attackhitbox;
 
         float moveSpeed = 5.0f;
         float sprintSpeed = 10.0f;
