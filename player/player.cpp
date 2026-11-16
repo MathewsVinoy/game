@@ -15,9 +15,14 @@ namespace opengame
 
     graphics::TransformComponent Player::getObject()
     {
+        object.name = "Player";
         object.scale = {0.01f, 0.01f, 0.01f};
         object.translation = {0.f, 0.f, 0.f};
         object.rotation = {0.f, 0.f, 0.f};
+        object.hasCollision = true;
+        object.colliderExtents = {0.4f, 0.9f, 0.4f};
+        object.colliderOffset = {0.f, 0.9f, 0.f};
+        object.aabb = collision.createAABB(object);
 
         return object;
     }
