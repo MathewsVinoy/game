@@ -23,6 +23,10 @@ namespace graphics
     physics::AABB aabb = physics::AABB{glm::vec3(0.f), glm::vec3(0.f)};
     bool activeState{true};
 
+    bool hasCollision{false};
+    glm::vec3 colliderExtents{0.f, 0.f, 0.f};
+    glm::vec3 colliderOffset{0.f, 0.f, 0.f};
+
     glm::mat4 mat4();
 
     glm::mat3 normalMatrix();
