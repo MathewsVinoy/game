@@ -8,8 +8,13 @@ namespace opengame
         app = &application;
         npc_object = object;
         graphics::TransformComponent info{};
+        info.name = "NPC";
         info.translation = {x, 0.f, -50.f};
         info.scale = {0.01f, 0.01f, 0.01f};
+        info.hasCollision = true;
+        info.colliderExtents = {0.4f, 0.9f, 0.4f};
+        info.colliderOffset = {0.f, 0.9f, 0.f};
+        info.aabb = collision.createAABB(info);
 
         graphics::GameObject::id_t renderObjectId = app->loadAnimatedModel(
             "assets/models/char.fbx",
@@ -42,6 +47,7 @@ namespace opengame
         // Move NPC
         gameObject.transform.translation.z +=
             npc_object.direction * movementSpeed * deltaTime;
+        gameObject.transform.aabb = collision.createAABB(gameObject.transform);
 
         // Check movement boundaries
         if (gameObject.transform.translation.z >= npc_object.end_point)
@@ -66,6 +72,14 @@ namespace opengame
         {
             animator->play("walk");
         }
+    }
+
+    void NPC::normal(float dt)
+    {
+        auto it = app->getGameObjects().find(npc_object.id);
+        if (it == app->getGameObjects().end())
+            return;
+        collision.checkCollisionAABB(app->getGameObjects(), it->first, it->second.transform);
     }
 
 } // namespace opengame
