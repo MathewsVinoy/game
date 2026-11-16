@@ -2,7 +2,7 @@
 
 namespace opengame
 {
-    bool Hitbox::checkAABB(const hitbox &a, const hitbox &b)
+    bool checkAABB(const Hitbox &a, const Hitbox &b)
     {
         if (!a.active || !b.active)
             return false;
