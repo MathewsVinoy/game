@@ -27,6 +27,7 @@ namespace opengame
         ~NPC();
         std::string getType() const { return npc_object.type; }
         void simple_walk(float deltaTime);
+        void normal(float dt);
 
     private:
         graphics::Application *app{nullptr};
