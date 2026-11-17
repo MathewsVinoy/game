@@ -119,10 +119,12 @@ namespace opengame
         {
             isAttacking = true;
             combatComponent.updateState(CombatState::ATTACKING);
+            attackhitbox.activate();
 
             if (!animator->isPlaying(punchAnim))
             {
                 animator->play(punchAnim, false);
+                attackhitbox.updatePosition(object.translation, {0.f, 0.f, 1.f});
             }
         }
         else if (animator->isPlaying(punchAnim))
@@ -132,6 +134,7 @@ namespace opengame
         else
         {
             combatComponent.updateState(CombatState::IDLE);
+            attackhitbox.deactivate();
         }
 
         object.translation.y += verticalVelocity * dt;
