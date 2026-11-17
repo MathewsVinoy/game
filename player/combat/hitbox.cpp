@@ -2,7 +2,7 @@
 
 namespace opengame
 {
-    bool checkAABB(const Hitbox &a, const Hitbox &b)
+    bool checkHitboxAABB(const Hitbox &a, const Hitbox &b)
     {
         if (!a.active || !b.active)
             return false;
@@ -17,4 +17,5 @@ namespace opengame
             a.getMin().z <= b.getMax().z &&
             a.getMax().z >= b.getMin().z);
     }
+
 }
