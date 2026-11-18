@@ -5,11 +5,11 @@
 namespace opengame
 {
 
-        class Hitbox
+    class Hitbox
     {
     public:
         glm::vec3 position{0.0f};
-        glm::vec3 size{1.0f, 1.5f, 1.0f};
+        glm::vec3 size{0.8f, 0.8f, 0.8f};
 
         bool active = false;
 
@@ -21,9 +21,9 @@ namespace opengame
 
         void deactivate() { active = false; }
 
-        void updatePosition(const glm::vec3 &playerPosition, const glm::vec3 &forward)
+        void updatePosition(const glm::vec3 &playerPosition, const glm::vec3 &forward, float reach = 0.9f)
         {
-            position = playerPosition + forward * 1.2f;
+            position = playerPosition + glm::vec3(0.0f, 1.0f, 0.0f) + forward * reach;
         }
     };
 }
