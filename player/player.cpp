@@ -1,6 +1,7 @@
 #include "player.hpp"
 
 #include "core/application.hpp"
+#include "physcis/hitbox_collision.h"
 #include "inputs/mouse_controller.hpp"
 
 #include <cmath>
@@ -23,6 +24,9 @@ namespace opengame
         object.colliderExtents = {0.4f, 0.9f, 0.4f};
         object.colliderOffset = {0.f, 0.9f, 0.f};
         object.aabb = collision.createAABB(object);
+        object.hitbox.position = object.translation + glm::vec3(0.0f, 0.9f, 0.0f);
+        object.hitbox.size = glm::vec3(0.8f, 1.8f, 0.8f);
+        object.hitbox.activate();
 
         return object;
     }
@@ -115,26 +119,55 @@ namespace opengame
             punchAnim = "punch";
 
         bool isAttacking = false;
+        glm::vec3 forward{std::sin(object.rotation.y), 0.0f, std::cos(object.rotation.y)};
+
         if (graphics::Mouse::leftMouseButtonPressed(application->getWindow().getGLFWwindow()))
         {
             isAttacking = true;
             combatComponent.updateState(CombatState::ATTACKING);
-            attackhitbox.activate();
+
+            if (!isMoving)
+            {
+                float attackYaw = std::atan2(forwardDir.x, forwardDir.z);
+                object.rotation = {0.0f, attackYaw, 0.0f};
+                forward = forwardDir;
+            }
 
             if (!animator->isPlaying(punchAnim))
             {
                 animator->play(punchAnim, false);
-                attackhitbox.updatePosition(object.translation, {0.f, 0.f, 1.f});
+                hasDealtDamage = false;
             }
+
+            attackhitbox.activate();
+            attackhitbox.updatePosition(object.translation, forward);
         }
         else if (animator->isPlaying(punchAnim))
         {
             isAttacking = true;
+            attackhitbox.activate();
+            attackhitbox.updatePosition(object.translation, forward);
         }
         else
         {
             combatComponent.updateState(CombatState::IDLE);
             attackhitbox.deactivate();
+            hasDealtDamage = false;
+        }
+
+        if (isAttacking && !hasDealtDamage)
+        {
+            for (auto &npc : application->getGameObjects())
+            {
+                if (npc.second.animatedModel && npc.second.transform.name == "NPC")
+                {
+                    if (physics::checkEnemyHit(attackhitbox, npc.second.transform.hitbox))
+                    {
+                        hasDealtDamage = true;
+                        break;
+                    }
+                }
+            }
         }
 
         object.translation.y += verticalVelocity * dt;
@@ -174,7 +207,11 @@ namespace opengame
 
         collision.checkCollisionAABB(application->getGameObjects(), it->first, object);
 
+        object.hitbox.position = object.translation + glm::vec3(0.0f, 0.9f, 0.0f);
+        object.hitbox.active = true;
+
         it->second.transform.translation = object.translation;
+        it->second.transform.hitbox = object.hitbox;
 
         it->second.transform.rotation = object.rotation;
 
