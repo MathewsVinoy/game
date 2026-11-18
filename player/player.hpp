@@ -34,6 +34,7 @@ namespace opengame
         physics::Collision collision;
         CombatComponent combatComponent;
         Hitbox attackhitbox;
+        bool hasDealtDamage = false;
 
         float moveSpeed = 5.0f;
         float sprintSpeed = 10.0f;
