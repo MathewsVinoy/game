@@ -3,6 +3,7 @@
 #include "graphics/render/model_buffers.hpp"
 #include "graphics/animation/animated_model.hpp"
 #include "physcis/aabb.h"
+#include "player/combat/hitbox.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -30,6 +31,7 @@ namespace graphics
     glm::mat4 mat4();
 
     glm::mat3 normalMatrix();
+    opengame::Hitbox hitbox{};
   };
 
   struct PointLightComponent
@@ -47,7 +49,7 @@ namespace graphics
     {
       static id_t currentId = 0;
       return GameObject{currentId++};
-   }
+    }
 
     static GameObject makePointLight(float intensity = 10.f, float radius = 0.1f,
                                      glm::vec3 color = glm::vec3(1.f));
