@@ -16,6 +16,10 @@ namespace opengame
         info.colliderOffset = {0.f, 0.9f, 0.f};
         info.aabb = collision.createAABB(info);
 
+        info.hitbox.position = info.translation + glm::vec3(0.0f, 0.9f, 0.0f);
+        info.hitbox.size = glm::vec3(0.8f, 1.8f, 0.8f);
+        info.hitbox.activate();
+
         graphics::GameObject::id_t renderObjectId = app->loadAnimatedModel(
             "assets/models/char.fbx",
             info);
@@ -48,6 +52,8 @@ namespace opengame
         gameObject.transform.translation.z +=
             npc_object.direction * movementSpeed * deltaTime;
         gameObject.transform.aabb = collision.createAABB(gameObject.transform);
+        gameObject.transform.hitbox.position = gameObject.transform.translation + glm::vec3(0.0f, 0.9f, 0.0f);
+        gameObject.transform.hitbox.activate();
 
         // Check movement boundaries
         if (gameObject.transform.translation.z >= npc_object.end_point)
@@ -80,6 +86,8 @@ namespace opengame
         if (it == app->getGameObjects().end())
             return;
         collision.checkCollisionAABB(app->getGameObjects(), it->first, it->second.transform);
+        it->second.transform.hitbox.position = it->second.transform.translation + glm::vec3(0.0f, 0.9f, 0.0f);
+        it->second.transform.hitbox.activate();
     }
 
 } // namespace opengame
