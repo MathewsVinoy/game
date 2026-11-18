@@ -3,6 +3,7 @@
 #include "object/object.hpp"
 #include "core/application.hpp"
 #include "physcis/collision.hpp"
+#include "player/combat/hitbox.hpp"
 
 namespace graphics
 {
@@ -32,6 +33,7 @@ namespace opengame
     private:
         graphics::Application *app{nullptr};
         NPC_Objectc npc_object;
+        Hitbox hitbox;
 
         physics::Collision collision;
     };
